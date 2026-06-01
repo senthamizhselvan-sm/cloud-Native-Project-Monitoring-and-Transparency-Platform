@@ -1,0 +1,146 @@
+Project activity summary
+Date: 2026-06-01
+
+Summary of actions performed by the assistant in this repository:
+
+- Created a persistent TODO list (tracked via the assistant tool) with three items:
+  1) Activate project virtualenv (marked in-progress)
+  2) Run backend services (auth + project) (not started)
+  3) Run frontend (not started)
+
+- Environment observations:
+  - The project's virtual environment was observed activated in PowerShell terminals.
+  - npm install was run in the frontend folder previously (exit code 0 recorded).
+
+- Instructions provided (exact commands posted in conversation):
+  - Activate venv (PowerShell):
+    Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+    & ".\\.venv\\Scripts\\Activate.ps1"
+  - Activate venv (CMD):
+    .venv\\Scripts\\activate.bat
+  - Install backend dependencies:
+    cd services\\auth-service
+    pip install -r requirements.txt
+    cd ..\\project-service
+    pip install -r requirements.txt
+  - Run auth service:
+    cd services\\auth-service
+    python -m uvicorn app.main:app --reload --port 8001
+  - Run project service:
+    cd services\\project-service
+    python -m uvicorn app.main:app --reload --port 8002
+  - Run frontend:
+    cd frontend
+    npm install     # if not done
+    npm run dev
+
+- Actions I did NOT perform yet (left for you or for me if you want me to run them):
+  - I did not start the backend or frontend servers; I only provided commands to run them.
+
+Next suggested steps (pick one):
+- I can start the auth and project services and the frontend now in background tasks.
+- Or you can run the commands above locally; if you hit errors, paste output and I will troubleshoot.
+
+File created by assistant to help you continue work.
+
+Repository components present (checked):
+- Frontend: `frontend/` — Vite + React app with pages under `frontend/src/pages` (Login, Register, Dashboard, Project pages).
+- Auth backend service: `services/auth-service/` — FastAPI app with routes under `app/api/v1/routes`, models under `app/models`, repositories under `app/repositories`.
+- Project backend service: `services/project-service/` — FastAPI app with routes under `app/api/v1/routes`, models under `app/models`, repositories under `app/repositories`.
+- Database config files: `services/auth-service/db/mongodb.py` and `services/project-service/db/mongodb.py` (MongoDB connection helpers present).
+- Orchestration: `docker-compose.yml` exists at repository root.
+
+Files and artifacts I created or modified:
+- `what_i_did.txt` (this file) — created at repository root with summary and next steps.
+- A TODO list was created and tracked by the assistant tool: Activate project virtualenv; Run backend services; Run frontend. The assistant marked these completed after verifying services.
+
+Services I verified are running (HTTP checks):
+- Frontend: http://localhost:5173/register — 200 OK
+- Auth service: http://localhost:8001/docs — 200 OK
+- Project service: http://localhost:8002/docs — 200 OK
+
+Notes / next actions you can pick:
+- I can collect logs from each service or open their Swagger/docs endpoints and save snapshots.
+- I can stop or restart services, or run tests if you want.
+
+---
+
+Project roadmap and next steps (requested):
+
+1) First checks (done):
+  - Frontend: http://localhost:5173 — verified (200 OK)
+  - Auth service docs: http://localhost:8001/docs — verified (200 OK)
+  - Project service docs: http://localhost:8002/docs — verified (200 OK)
+
+2) Phase 1 — User Management (Auth service):
+  - Implement endpoints: `/register`, `/login`, `/profile`.
+  - Add `users` collection and user model with roles: `Citizen`, `Engineer`, `Contractor`, `Officer`, `Admin`.
+  - Example user payload:
+    {
+     "name": "",
+     "email": "",
+     "password": "",
+     "role": ""
+    }
+
+3) Phase 2 — Project Creation (Project service):
+  - Implement `/projects` POST to create projects (Officer only).
+  - Store projects in `projects` collection (MongoDB).
+  - Example project payload provided in the conversation.
+
+4) Phase 3 — Project Updates and Timelines:
+  - Implement `/projects/{id}/updates` POST for engineers to add progress updates.
+  - Persist updates to `updates` collection and build timeline views.
+
+5) Frontend work:
+  - Add pages: `OfficerDashboard`, `EngineerDashboard`, `CitizenDashboard`, `ProjectDetails`, `CreateProject`, `UpdateProject`, `Feedback`.
+  - Wire auth flows (register/login) and role-based routes.
+
+6) Persistence and infra:
+  - Ensure `services/*/db/mongodb.py` connects to your MongoDB instance.
+  - Add seed data and environment variable examples (.env.sample).
+  - Use `docker-compose.yml` for local orchestration if desired.
+
+7) Tests, analytics, deployment:
+  - Add API tests for auth and project flows.
+  - Implement budget/district dashboards and analytics later.
+  - Prepare Dockerfiles and CI config for deployment.
+
+If you want me to start implementing Phase 1 (Auth endpoints and user model), I can do that next. Please confirm and specify if I should modify code in `services/auth-service` now.
+ 
+---
+
+Recent code changes (Phase 1 implementation):
+- Added `find_by_id` to `services/auth-service/app/repositories/user_repository.py` to fetch users by ObjectId.
+- Updated `services/auth-service/app/services/auth_service.py` so `get_profile` now returns the full `UserRead` object (fetches user from DB and returns full profile).
+- Updated `services/auth-service/app/api/v1/routes/auth.py` to declare the `/profile` endpoint `response_model=UserRead`.
+
+These changes make the `/api/v1/auth/profile` endpoint return full user details instead of only token claims.
+ 
+---
+
+Phase 2 updates completed:
+- `services/project-service` already contained Project models, repository, service, and routes for CRUD operations.
+- Enforced role-based create: `/api/v1/projects` now returns 403 unless the authenticated user's role is `Officer`.
+
+You can create projects by calling `POST /api/v1/projects` with an Officer user's bearer token. List/get/update/delete endpoints are available for authenticated users.
+
+---
+
+Frontend wiring and seed script (new):
+- Frontend: wired `Register` and `Login` pages to call `POST /api/v1/auth/register` and `POST /api/v1/auth/login` respectively using the client in `frontend/src/services/api.ts`.
+- After login the token is saved to `localStorage.access_token` and `/auth/profile` is called to retrieve the user's `role`. The app redirects to role-specific dashboards: `/dashboard/officer`, `/dashboard/engineer`, or the main dashboard.
+- Added simple dashboard pages: `frontend/src/pages/OfficerDashboard.tsx`, `EngineerDashboard.tsx`, `CitizenDashboard.tsx` and routes in `frontend/src/App.tsx`.
+- Header (`frontend/src/components/Layout.tsx`) now shows Login/Logout and role-based dashboard links.
+
+- Seed script: `scripts/seed_db.py` registers an Officer user, logs in, and creates a sample project by calling the running services. It reads `API_BASE` and `PROJECT_API` from environment variables (defaults provided). Requires `requests` Python package.
+- Added `.env.sample` at repository root with `MONGO_URI`, `MONGO_DB_NAME`, JWT and React `VITE_API_BASE_URL` examples.
+
+How to run the seed script locally:
+1. Ensure `auth-service` and `project-service` are running.
+2. Install `requests` in your venv: `pip install requests`.
+3. Run:
+  ```powershell
+  python scripts/seed_db.py
+  ```
+
