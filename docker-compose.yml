@@ -1,24 +1,16 @@
 services:
-  mongo:
-    image: mongo:7
-    container_name: government-monitoring-mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
   auth-service:
     build: ./services/auth-service
     container_name: auth-service
     ports:
       - "8001:8001"
     environment:
-      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_URI=mongodb://host.docker.internal:27017
       - MONGO_DB_NAME=government_monitoring
       - JWT_SECRET_KEY=change-me
       - 'CORS_ORIGINS=["http://localhost:5173"]'
-    depends_on:
-      - mongo
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   project-service:
     build: ./services/project-service
@@ -26,12 +18,12 @@ services:
     ports:
       - "8002:8002"
     environment:
-      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_URI=mongodb://host.docker.internal:27017
       - MONGO_DB_NAME=government_monitoring
       - JWT_SECRET_KEY=change-me
       - 'CORS_ORIGINS=["http://localhost:5173"]'
-    depends_on:
-      - mongo
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   feedback-service:
     build: ./services/feedback-service
@@ -39,12 +31,12 @@ services:
     ports:
       - "8003:8003"
     environment:
-      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_URI=mongodb://host.docker.internal:27017
       - MONGO_DB_NAME=government_monitoring
       - JWT_SECRET_KEY=change-me
       - 'CORS_ORIGINS=["http://localhost:5173"]'
-    depends_on:
-      - mongo
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   document-service:
     build: ./services/document-service
@@ -52,12 +44,12 @@ services:
     ports:
       - "8004:8004"
     environment:
-      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_URI=mongodb://host.docker.internal:27017
       - MONGO_DB_NAME=government_monitoring
       - JWT_SECRET_KEY=change-me
       - 'CORS_ORIGINS=["http://localhost:5173"]'
-    depends_on:
-      - mongo
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   analytics-service:
     build: ./services/analytics-service
@@ -65,12 +57,12 @@ services:
     ports:
       - "8005:8005"
     environment:
-      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_URI=mongodb://host.docker.internal:27017
       - MONGO_DB_NAME=government_monitoring
       - JWT_SECRET_KEY=change-me
       - 'CORS_ORIGINS=["http://localhost:5173"]'
-    depends_on:
-      - mongo
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   notification-service:
     build: ./services/notification-service
@@ -78,12 +70,12 @@ services:
     ports:
       - "8006:8006"
     environment:
-      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_URI=mongodb://host.docker.internal:27017
       - MONGO_DB_NAME=government_monitoring
       - JWT_SECRET_KEY=change-me
       - 'CORS_ORIGINS=["http://localhost:5173"]'
-    depends_on:
-      - mongo
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   audit-service:
     build: ./services/audit-service
@@ -91,12 +83,12 @@ services:
     ports:
       - "8007:8007"
     environment:
-      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_URI=mongodb://host.docker.internal:27017
       - MONGO_DB_NAME=government_monitoring
       - JWT_SECRET_KEY=change-me
       - 'CORS_ORIGINS=["http://localhost:5173"]'
-    depends_on:
-      - mongo
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   prediction-service:
     build: ./services/prediction-service
@@ -104,12 +96,12 @@ services:
     ports:
       - "8008:8008"
     environment:
-      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_URI=mongodb://host.docker.internal:27017
       - MONGO_DB_NAME=government_monitoring
       - JWT_SECRET_KEY=change-me
       - 'CORS_ORIGINS=["http://localhost:5173"]'
-    depends_on:
-      - mongo
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   frontend:
     build: ./frontend
@@ -145,6 +137,3 @@ services:
       - "3000:3000"
     depends_on:
       - prometheus
-
-volumes:
-  mongo_data:

@@ -99,6 +99,8 @@ COMPLAINT_DESCS = {
 }
 
 def main():
+    import bcrypt
+
     mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017')
     db_name = os.environ.get('MONGO_DB_NAME', 'government_monitoring')
 
@@ -107,11 +109,15 @@ def main():
     db = client[db_name]
 
     # Clean existing collections
-    print("Clearing existing projects, timeline, feedback, and activities data...")
+    print("Clearing existing database collections (projects, timeline, feedback, activities, users, documents, notifications, audit_logs)...")
     db.projects.delete_many({})
     db.timeline.delete_many({})
     db.feedback.delete_many({})
     db.activities.delete_many({})
+    db.users.delete_many({})
+    db.documents.delete_many({})
+    db.notifications.delete_many({})
+    db.audit_logs.delete_many({})
 
     projects_to_insert = []
     timelines_to_insert = []
@@ -119,6 +125,61 @@ def main():
     activities_to_insert = []
 
     now = datetime.now(timezone.utc)
+
+    # Seed default users
+    print("Hashing default passwords and seeding district users...")
+    officer_password = os.environ.get('OFFICER_PASSWORD', 'TempPass!23')
+    hashed_pwd = bcrypt.hashpw(officer_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    users_to_insert = [
+        {
+            '_id': ObjectId(),
+            'full_name': 'Chief Officer',
+            'email': 'officer@example.com',
+            'hashed_password': hashed_pwd,
+            'role': 'Officer',
+            'district': 'Chennai',
+            'is_active': True,
+            'created_at': now,
+            'updated_at': now
+        },
+        {
+            '_id': ObjectId(),
+            'full_name': 'System Admin',
+            'email': 'admin@example.com',
+            'hashed_password': hashed_pwd,
+            'role': 'Admin',
+            'district': 'Chennai',
+            'is_active': True,
+            'created_at': now,
+            'updated_at': now
+        }
+    ]
+
+    for district in TAMIL_NADU_DISTRICTS:
+        dist_lower = district.lower().replace(' ', '')
+        users_to_insert.append({
+            '_id': ObjectId(),
+            'full_name': f"{district} Citizen",
+            'email': f"citizen.{dist_lower}@example.com",
+            'hashed_password': hashed_pwd,
+            'role': 'Citizen',
+            'district': district,
+            'is_active': True,
+            'created_at': now,
+            'updated_at': now
+        })
+        users_to_insert.append({
+            '_id': ObjectId(),
+            'full_name': f"{district} Engineer",
+            'email': f"engineer.{dist_lower}@gov.in",
+            'hashed_password': hashed_pwd,
+            'role': 'Engineer',
+            'district': district,
+            'is_active': True,
+            'created_at': now,
+            'updated_at': now
+        })
 
     print(f"Generating 20 projects for each of the {len(TAMIL_NADU_DISTRICTS)} districts...")
 
@@ -318,12 +379,16 @@ def main():
         print(f"Bulk inserting {len(activities_to_insert)} activities...")
         db.activities.insert_many(activities_to_insert)
 
+    print(f"Bulk inserting {len(users_to_insert)} seeded users...")
+    db.users.insert_many(users_to_insert)
+
     print("\n=============================================")
     print("Database seeding completed successfully!")
     print(f"Total Projects: {len(projects_to_insert)}")
     print(f"Total Milestones: {len(timelines_to_insert)}")
     print(f"Total Complaints: {len(feedbacks_to_insert)}")
     print(f"Total Activity Logs: {len(activities_to_insert)}")
+    print(f"Total Users: {len(users_to_insert)}")
     print("=============================================")
 
 if __name__ == '__main__':

@@ -83,6 +83,19 @@ async def upload_document(
     if role not in ['Officer', 'Engineer', 'Contractor', 'Admin', 'Citizen']:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Not authorized to upload files')
 
+    district = payload.get('district')
+    if role in ['Citizen', 'Engineer'] and district:
+        try:
+            project = await db['projects'].find_one({'_id': ObjectId(project_id)})
+            if project and project.get('location'):
+                p_loc = project.get('location')
+                if p_loc.strip().lower() != district.strip().lower():
+                    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Access restricted to your registered district')
+        except HTTPException:
+            raise
+        except Exception:
+            pass
+
     # Versioning implementation
     existing_cursor = collection.find({'project_id': project_id, 'filename': file.filename})
     existing_docs = await existing_cursor.to_list(length=100)
@@ -144,6 +157,21 @@ async def upload_document(
 # Fetch Documents for Project
 @app.get('/api/v1/documents/project/{project_id}', response_model=list[DocumentRead])
 async def get_project_documents(project_id: str, payload: dict | None = Depends(decode_token_optional)):
+    if payload:
+        role = payload.get('role')
+        district = payload.get('district')
+        if role in ['Citizen', 'Engineer'] and district:
+            try:
+                project = await db['projects'].find_one({'_id': ObjectId(project_id)})
+                if project and project.get('location'):
+                    p_loc = project.get('location')
+                    if p_loc.strip().lower() != district.strip().lower():
+                        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Access restricted to your registered district')
+            except HTTPException:
+                raise
+            except Exception:
+                pass
+
     documents = []
     async for doc in collection.find({'project_id': project_id}).sort('uploaded_at', -1):
         doc['id'] = str(doc.pop('_id'))
