@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.api.v1.routes.project import router as project_router
 from app.core.config import get_settings
@@ -17,6 +18,8 @@ app.add_middleware(
 )
 
 app.include_router(project_router, prefix='/api/v1/projects', tags=['Projects'])
+
+Instrumentator().instrument(app).expose(app)
 
 
 @app.get('/health')

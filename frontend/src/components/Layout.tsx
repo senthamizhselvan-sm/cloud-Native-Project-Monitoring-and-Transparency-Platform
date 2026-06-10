@@ -34,11 +34,13 @@ export default function Layout() {
           <nav className="flex gap-4 text-sm font-medium text-slate-600">
             <Link to="/" className="transition hover:text-slate-900">Dashboard</Link>
             <Link to="/projects" className="transition hover:text-slate-900">Projects</Link>
+            <Link to="/public" className="transition hover:text-slate-900">Transparency Portal</Link>
+            <Link to="/map" className="transition hover:text-slate-900">GIS Map</Link>
             {loggedIn ? (
               <>
-                {role === 'Officer' && <Link to="/dashboard/officer" className="transition hover:text-slate-900">Officer</Link>}
-                {role === 'Engineer' && <Link to="/dashboard/engineer" className="transition hover:text-slate-900">Engineer</Link>}
-                {role === 'Citizen' && <Link to="/dashboard/citizen" className="transition hover:text-slate-900">Citizen</Link>}
+                {role === 'Officer' && <Link to="/dashboard/officer" className="transition hover:text-slate-900">Officer Panel</Link>}
+                {role === 'Engineer' && <Link to="/dashboard/engineer" className="transition hover:text-slate-900">Engineer Panel</Link>}
+                {role === 'Citizen' && <Link to="/dashboard/citizen" className="transition hover:text-slate-900">Citizen Dashboard</Link>}
                 <button onClick={handleLogout} className="ml-2 text-sm text-red-600">Logout</button>
               </>
             ) : (

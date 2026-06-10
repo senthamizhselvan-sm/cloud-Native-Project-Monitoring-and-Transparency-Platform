@@ -23,6 +23,7 @@ class AuthService:
             email=request.email,
             hashed_password=hash_password(request.password),
             role=request.role,
+            district=request.district,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
@@ -32,6 +33,7 @@ class AuthService:
             full_name=created_user.full_name,
             email=created_user.email,
             role=created_user.role,
+            district=created_user.district,
             is_active=created_user.is_active,
         )
 
@@ -40,7 +42,13 @@ class AuthService:
         if user is None or not verify_password(request.password, user.hashed_password):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid credentials')
 
-        token = create_access_token(subject=user.id or user.email, role=user.role)
+        token = create_access_token(
+            subject=user.id or user.email,
+            role=user.role,
+            name=user.full_name,
+            email=user.email,
+            district=getattr(user, 'district', '') or ''
+        )
         return TokenResponse(access_token=token)
 
     async def get_profile(self, payload: dict) -> dict:
@@ -54,5 +62,6 @@ class AuthService:
             full_name=user.full_name,
             email=user.email,
             role=user.role,
+            district=getattr(user, 'district', None),
             is_active=user.is_active,
         )

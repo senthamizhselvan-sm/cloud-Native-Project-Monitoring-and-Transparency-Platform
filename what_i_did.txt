@@ -97,9 +97,9 @@ Project roadmap and next steps (requested):
   - Wire auth flows (register/login) and role-based routes.
 
 6) Persistence and infra:
-  - Ensure `services/*/db/mongodb.py` connects to your MongoDB instance.
+  - Ensure `services/*/db/mongodb.py` connects to your local MongoDB instance at `mongodb://localhost:27017`.
   - Add seed data and environment variable examples (.env.sample).
-  - Use `docker-compose.yml` for local orchestration if desired.
+  - Docker is not required for the database path; use the local Windows MongoDB service instead.
 
 7) Tests, analytics, deployment:
   - Add API tests for auth and project flows.
@@ -138,9 +138,16 @@ Frontend wiring and seed script (new):
 
 How to run the seed script locally:
 1. Ensure `auth-service` and `project-service` are running.
-2. Install `requests` in your venv: `pip install requests`.
-3. Run:
+2. Start the local MongoDB Windows service named `MongoDB`.
+3. Install `requests` in your venv: `pip install requests`.
+4. Run:
   ```powershell
   python scripts/seed_db.py
   ```
+
+MongoDB verification status:
+- Local Windows service `MongoDB` exists but is currently stopped.
+- Port `27017` is not listening yet on `localhost`.
+- I attempted to start the service, but Windows returned an access/permission error.
+- Once MongoDB is started, `scripts/check_db.py` can confirm the `users` and `projects` collections directly against `mongodb://localhost:27017`.
 

@@ -9,6 +9,7 @@ class UserInDB(BaseModel):
     email: EmailStr
     hashed_password: str
     role: str = Field(default='Citizen')
+    district: str | None = None
     is_active: bool = True
     created_at: datetime | None = None
     updated_at: datetime | None = None

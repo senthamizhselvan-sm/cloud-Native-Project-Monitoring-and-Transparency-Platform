@@ -10,11 +10,14 @@ This script will register an Officer user, login, then create a sample project o
 """
 import os
 import time
+import logging
 import requests
 
 
 API_BASE = os.environ.get('API_BASE', 'http://localhost:8001/api/v1')
 PROJECT_API = os.environ.get('PROJECT_API', 'http://localhost:8002/api/v1')
+
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 
 def register_user(full_name, email, password, role='Citizen'):
@@ -45,19 +48,22 @@ def create_project(token, project):
 
 
 def main():
-    print('Seeding sample data...')
+    logging.info('Seeding sample data...')
 
-    officer_email = 'officer@example.test'
-    officer_password = 'Password123!'
+    officer_email = os.environ.get('OFFICER_EMAIL', 'officer@example.com')
+    officer_password = os.environ.get('OFFICER_PASSWORD')
+
+    if not officer_password:
+        raise SystemExit('OFFICER_PASSWORD environment variable not set. Aborting seed to avoid hardcoded credentials.')
 
     try:
-        print('Registering officer...')
+        logging.info('Registering officer...')
         register_user('Chief Officer', officer_email, officer_password, role='Officer')
     except requests.HTTPError as exc:
-        print('Officer may already exist:', exc)
+        logging.info('Officer may already exist: %s', exc)
 
     token = login(officer_email, officer_password)
-    print('Logged in as officer, token length:', len(token))
+    logging.info('Logged in as officer, token length: %d', len(token))
 
     project = {
         'name': 'Village Water Tank',
@@ -67,9 +73,9 @@ def main():
         'end_date': '2026-12-01T00:00:00Z',
         'location': 'Kumbakonam',
     }
-    print('Creating sample project...')
+    logging.info('Creating sample project...')
     created = create_project(token, project)
-    print('Created project:', created.get('id'))
+    logging.info('Created project: %s', created.get('id'))
 
 
 if __name__ == '__main__':

@@ -1,0 +1,129 @@
+========================================================================
+COMPLETED DEVELOPMENT RECORD: GOVERNMENT WORKFLOW & FRONTEND INTEGRATION
+========================================================================
+Repository: cloud-Native-Project-Monitoring-and-Transparency-Platform
+Date: 2026-06-04
+Workspace Path: D:\project cloud\cloud1
+
+This file logs exactly what has been modified, created, and integrated in the monorepo.
+
+------------------------------------------------------------------------
+PART 1: BUG FIXES, ROUTING DECOUPLING & FRONTEND INTEGRATION
+------------------------------------------------------------------------
+- Resolved Compiler Errors:
+  - Removed duplicate typescript function exports in `OfficerDashboard.tsx`, 
+    `EngineerDashboard.tsx`, and `ProjectDetailsPage.tsx`.
+  - Removed duplicate import of `ProjectDetailsPage` in `App.tsx`.
+- Refactored Layout Routing:
+  - Decoupled layouts in `frontend/src/App.tsx`. Separated public citizen 
+    routes (wrapped in top-navigation `Layout.tsx`) from role-based internal 
+    dashboards (wrapped in sidebar navigation `AppLayout.tsx`) to resolve 
+    header overlapping issues.
+- Multi-Service Axios setup (`frontend/src/services/api.ts`):
+  - Created and exported `authApi` (Port 8001), `projectApi` (Port 8002), 
+    and `feedbackApi` (Port 8003) Axios instances.
+  - Injected stored Bearer token interceptor to all three clients automatically.
+- User Session Capture (`frontend/src/pages/LoginPage.tsx`):
+  - Stores logged-in user email under `user_email` in localStorage to enable 
+    assigned projects filtering.
+- Replaced Mock Pages with Dynamic Components:
+  - `ProjectListPage.tsx`: Queries `projectApi.get('/projects')` and renders 
+    a table with links, currency formatting, status badges, and loading states.
+  - `ProjectDetailsPage.tsx`: Fetches details by ID and shows progress 
+    percentage, start/end timelines, budget, and assigned engineer details.
+  - `OfficerDashboard.tsx`: Displays active/completed project counts and 
+    total budget. Renders a form to submit new projects (POST /projects) and 
+    assign them to engineers.
+  - `EngineerDashboard.tsx`: Lists only projects assigned to the engineer. 
+    Allows updating completion percentage (0-100 range slider) and status 
+    (Planned, In Progress, Completed, Delayed) using PUT requests.
+
+------------------------------------------------------------------------
+PART 2: PHASE 1 — FEEDBACK SERVICE (GOVERNMENT WORKFLOW)
+------------------------------------------------------------------------
+Created a new, independent microservice under `services/feedback-service/` 
+running on port `8003` to manage citizen grievances.
+
+- Backend Architecture:
+  - `requirements.txt`: Standard backend packages (FastAPI, Motor, Uvicorn, Jose).
+  - `app/core/config.py`: Environment configurations loader.
+  - `app/core/security.py`: JWT decoder validating against shared secret.
+  - `app/db/mongodb.py`: Async Motor MongoDB driver connection setup.
+  - `app/models/feedback.py`: Database schema representing feedback items.
+  - `app/schemas/feedback.py`: Pydantic input validation structures.
+  - `app/repositories/feedback_repository.py`: Async MongoDB queries.
+  - `app/services/feedback_service.py`: Business logic layer.
+  - `app/api/v1/routes/feedback.py`: API routes endpoints:
+    - POST `/api/v1/feedback`: Creates a complaint. Automatically reads 
+      `citizen_id` from JWT sub payload.
+    - GET `/api/v1/feedback`: Lists own complaints (for Citizens) or all 
+      complaints (for Officers/Admins).
+    - PUT `/api/v1/feedback/{id}`: Updates status and assigns inspector (restricted).
+- Frontend Views & Wiring:
+  - `CitizenDashboard.tsx`: Displays a list of issues submitted by the logged-in 
+    citizen and links to the reporting form.
+  - `FeedbackForm.tsx`: Fetches active projects from project-service and 
+    submits complaints to feedback-service.
+  - `FeedbackManagement.tsx`: Allows Officers to view all citizen reports, 
+    input inspector names, and mark reports as resolved. Maps project IDs to 
+    names in-memory.
+  - `Sidebar.tsx`: Added dynamic links for feedback dashboards.
+
+------------------------------------------------------------------------
+PART 3: DIRECTORY OF MODIFIED & CREATED FILES
+------------------------------------------------------------------------
+CREATED:
+- `services/feedback-service/requirements.txt`
+- `services/feedback-service/.env.example`
+- `services/feedback-service/app/main.py`
+- `services/feedback-service/app/core/config.py`
+- `services/feedback-service/app/core/security.py`
+- `services/feedback-service/app/db/mongodb.py`
+- `services/feedback-service/app/models/feedback.py`
+- `services/feedback-service/app/schemas/feedback.py`
+- `services/feedback-service/app/repositories/feedback_repository.py`
+- `services/feedback-service/app/services/feedback_service.py`
+- `services/feedback-service/app/api/v1/routes/feedback.py`
+- `services/feedback-service/app/__init__.py` (and empty __init__.py files in app folders)
+- `frontend/src/pages/FeedbackForm.tsx`
+- `frontend/src/pages/FeedbackManagement.tsx`
+- `what_i_did_completed.txt` (This file)
+
+MODIFIED:
+- `frontend/src/services/api.ts`
+- `frontend/src/pages/LoginPage.tsx`
+- `frontend/src/App.tsx`
+- `frontend/src/components/layout/Sidebar.tsx`
+- `frontend/src/components/layout/TopNav.tsx`
+- `frontend/src/pages/ProjectListPage.tsx`
+- `frontend/src/pages/ProjectDetailsPage.tsx`
+- `frontend/src/pages/OfficerDashboard.tsx`
+- `frontend/src/pages/EngineerDashboard.tsx`
+- `frontend/src/pages/CitizenDashboard.tsx`
+- `frontend/.env`
+- `frontend/.env.example`
+
+------------------------------------------------------------------------
+PART 4: STARTUP COMMANDS SUMMARY
+------------------------------------------------------------------------
+In separate PowerShell terminals:
+
+1. Auth Service (8001):
+   & "D:\project cloud\cloud1\.venv\Scripts\Activate.ps1"
+   cd "D:\project cloud\cloud1\services\auth-service"
+   python -m uvicorn app.main:app --reload --port 8001
+
+2. Project Service (8002):
+   & "D:\project cloud\cloud1\.venv\Scripts\Activate.ps1"
+   cd "D:\project cloud\cloud1\services\project-service"
+   python -m uvicorn app.main:app --reload --port 8002
+
+3. Feedback Service (8003):
+   & "D:\project cloud\cloud1\.venv\Scripts\Activate.ps1"
+   cd "D:\project cloud\cloud1\services\feedback-service"
+   python -m uvicorn app.main:app --reload --port 8003
+
+4. React Frontend (5173):
+   cd "D:\project cloud\cloud1\frontend"
+   npm run dev
+========================================================================

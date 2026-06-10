@@ -1,0 +1,88 @@
+========================================================================
+DEVELOPMENT COMPLETED: FRONTEND INTEGRATION AND ROUTING REFRACTORING
+========================================================================
+Date: 2026-06-04
+Workspace: D:\project cloud\cloud1
+Description: This file documents the integration steps completed to connect 
+             the React frontend to the two FastAPI backend microservices and 
+             fix the compiler errors and layout issues.
+
+------------------------------------------------------------------------
+1. ISSUES RESOLVED (BUGS FIXED)
+------------------------------------------------------------------------
+- Duplicate Exports Resolved:
+  - Fixed duplicate "export default function OfficerDashboard()" in 
+    `frontend/src/pages/OfficerDashboard.tsx`.
+  - Fixed duplicate "export default function EngineerDashboard()" in 
+    `frontend/src/pages/EngineerDashboard.tsx`.
+  - Fixed duplicate "export default function ProjectDetailsPage()" in 
+    `frontend/src/pages/ProjectDetailsPage.tsx`.
+- Duplicate Imports Cleaned:
+  - Removed duplicate import of `ProjectDetailsPage` in `frontend/src/App.tsx`.
+- Layout Overlap Resolved:
+  - Split page layouts between the public view (Layout.tsx top-navigation) 
+    and internal dashboards (AppLayout.tsx sidebar-navigation) by updating 
+    the routes configuration in `frontend/src/App.tsx`.
+
+------------------------------------------------------------------------
+2. FEATURES & INTEGRATIONS IMPLEMENTED
+------------------------------------------------------------------------
+- Multi-Service Axios Setup (`frontend/src/services/api.ts`):
+  - Created `authApi` (default, pointing to port 8001) for authentication.
+  - Created `projectApi` (named export, pointing to port 8002) for projects.
+  - Automated injection of Bearer token header on both clients.
+- User Session Email Capture (`frontend/src/pages/LoginPage.tsx`):
+  - Captured user's profile email on login and stored it in `localStorage.user_email`.
+- Dynamic Project List Page (`frontend/src/pages/ProjectListPage.tsx`):
+  - Fetches and displays actual projects from projectApi.
+  - Formats numbers into currency and binds links to details view.
+- Dynamic Project Details Page (`frontend/src/pages/ProjectDetailsPage.tsx`):
+  - Fetches project metadata and displays status badge, progress ring, 
+    assigned engineer, timeline, and description from database.
+- Interactive Officer Dashboard (`frontend/src/pages/OfficerDashboard.tsx`):
+  - Automatically calculates total projects, active projects, completed 
+    projects, and total budget using live API data.
+  - Implemented a functioning form to create new projects and assign 
+    engineers via POST /projects.
+- Interactive Engineer Dashboard (`frontend/src/pages/EngineerDashboard.tsx`):
+  - Automatically filters projects list to display only projects assigned 
+    to the logged-in engineer's email.
+  - Added a sidebar card with range-slider and status select to update 
+    project completion and status via PUT /projects/{id}.
+- Dynamic Navigation layouts (`Sidebar.tsx` and `TopNav.tsx`):
+  - Renders sidebar nav links based on role (Officer, Engineer, Admin).
+  - Displays user profile letters, full name, and role dynamically.
+  - Integrated Sign Out button in the dashboard sidebar.
+
+------------------------------------------------------------------------
+3. DIRECTORY OF MODIFIED FILES
+------------------------------------------------------------------------
+- `frontend/src/services/api.ts`
+- `frontend/src/pages/LoginPage.tsx`
+- `frontend/src/App.tsx`
+- `frontend/src/components/layout/Sidebar.tsx`
+- `frontend/src/components/layout/TopNav.tsx`
+- `frontend/src/pages/ProjectListPage.tsx`
+- `frontend/src/pages/ProjectDetailsPage.tsx`
+- `frontend/src/pages/OfficerDashboard.tsx`
+- `frontend/src/pages/EngineerDashboard.tsx`
+
+------------------------------------------------------------------------
+4. HOW TO RUN & VERIFY
+------------------------------------------------------------------------
+1. Start local MongoDB.
+2. In Terminal 1 (Auth Service):
+   & "D:\project cloud\cloud1\.venv\Scripts\Activate.ps1"
+   cd "D:\project cloud\cloud1\services\auth-service"
+   python -m uvicorn app.main:app --reload --port 8001
+3. In Terminal 2 (Project Service):
+   & "D:\project cloud\cloud1\.venv\Scripts\Activate.ps1"
+   cd "D:\project cloud\cloud1\services\project-service"
+   python -m uvicorn app.main:app --reload --port 8002
+4. In Terminal 3 (Frontend):
+   cd "D:\project cloud\cloud1\frontend"
+   npm run dev
+5. Seed Database (Optional):
+   $env:OFFICER_PASSWORD="TempPass!23"
+   .venv\Scripts\python.exe scripts/seed_db.py
+========================================================================

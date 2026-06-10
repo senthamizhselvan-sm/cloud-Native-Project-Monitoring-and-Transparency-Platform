@@ -36,3 +36,5 @@ class ProjectRead(ProjectBase):
     created_by: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+    risk_level: str = "Low"
+    risk_score: float = 10.0

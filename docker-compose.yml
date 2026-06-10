@@ -7,5 +7,144 @@ services:
     volumes:
       - mongo_data:/data/db
 
+  auth-service:
+    build: ./services/auth-service
+    container_name: auth-service
+    ports:
+      - "8001:8001"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_DB_NAME=government_monitoring
+      - JWT_SECRET_KEY=change-me
+      - 'CORS_ORIGINS=["http://localhost:5173"]'
+    depends_on:
+      - mongo
+
+  project-service:
+    build: ./services/project-service
+    container_name: project-service
+    ports:
+      - "8002:8002"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_DB_NAME=government_monitoring
+      - JWT_SECRET_KEY=change-me
+      - 'CORS_ORIGINS=["http://localhost:5173"]'
+    depends_on:
+      - mongo
+
+  feedback-service:
+    build: ./services/feedback-service
+    container_name: feedback-service
+    ports:
+      - "8003:8003"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_DB_NAME=government_monitoring
+      - JWT_SECRET_KEY=change-me
+      - 'CORS_ORIGINS=["http://localhost:5173"]'
+    depends_on:
+      - mongo
+
+  document-service:
+    build: ./services/document-service
+    container_name: document-service
+    ports:
+      - "8004:8004"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_DB_NAME=government_monitoring
+      - JWT_SECRET_KEY=change-me
+      - 'CORS_ORIGINS=["http://localhost:5173"]'
+    depends_on:
+      - mongo
+
+  analytics-service:
+    build: ./services/analytics-service
+    container_name: analytics-service
+    ports:
+      - "8005:8005"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_DB_NAME=government_monitoring
+      - JWT_SECRET_KEY=change-me
+      - 'CORS_ORIGINS=["http://localhost:5173"]'
+    depends_on:
+      - mongo
+
+  notification-service:
+    build: ./services/notification-service
+    container_name: notification-service
+    ports:
+      - "8006:8006"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_DB_NAME=government_monitoring
+      - JWT_SECRET_KEY=change-me
+      - 'CORS_ORIGINS=["http://localhost:5173"]'
+    depends_on:
+      - mongo
+
+  audit-service:
+    build: ./services/audit-service
+    container_name: audit-service
+    ports:
+      - "8007:8007"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_DB_NAME=government_monitoring
+      - JWT_SECRET_KEY=change-me
+      - 'CORS_ORIGINS=["http://localhost:5173"]'
+    depends_on:
+      - mongo
+
+  prediction-service:
+    build: ./services/prediction-service
+    container_name: prediction-service
+    ports:
+      - "8008:8008"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_DB_NAME=government_monitoring
+      - JWT_SECRET_KEY=change-me
+      - 'CORS_ORIGINS=["http://localhost:5173"]'
+    depends_on:
+      - mongo
+
+  frontend:
+    build: ./frontend
+    container_name: react-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - auth-service
+      - project-service
+      - feedback-service
+      - document-service
+      - analytics-service
+      - notification-service
+      - audit-service
+      - prediction-service
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - auth-service
+      - project-service
+      - feedback-service
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
 volumes:
   mongo_data:

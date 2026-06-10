@@ -1,0 +1,85 @@
+Development summary for cloud-Native-Project-Monitoring-and-Transparency-Platform
+
+Date: 2026-06-02
+Workspace: d:\project cloud\cloud1
+
+What I did (actions completed)
+- Performed repository health checks and basic static inspections.
+- Verified MongoDB connectivity using `scripts/check_db.py`.
+- Seeded sample project(s) using `scripts/insert_sample_project.py` and `scripts/seed_db.py`.
+  - Inserted project id: 6a1ea9694db9745cf4cbe15b (direct pymongo insert).
+  - Seed script created project id: 6a1eb538481197cea675bfec.
+- Debugged auth login HTTP 500 caused by bcrypt/passlib mismatch.
+  - Updated `services/auth-service/app/core/security.py` to use `bcrypt` API directly (avoiding passlib backend detection bug).
+  - Updated officer user's `hashed_password` in MongoDB to a bcrypt hash for `TempPass!23` so seed/login succeed.
+- Started development servers (uvicorn) for services and frontend dev server during testing.
+- Added `scripts/update_officer_hash.py` to re-hash/update officer password when needed.
+- Added/updated seed and helper scripts to run with environment variable `OFFICER_PASSWORD` instead of hardcoded password.
+
+Files changed/created
+- Modified: `services/auth-service/app/core/security.py` (switched to direct bcrypt usage)
+- Modified: `scripts/seed_db.py` (require `OFFICER_PASSWORD`, uses `requests`, improved logging)
+- Added: `scripts/insert_sample_project.py` (direct pymongo insert)
+- Added: `scripts/update_officer_hash.py` (update officer hashed password)
+- Added: `DEV_SUMMARY.txt` (this file)
+
+Commands I ran (examples)
+- Start auth service:
+  C:/Python313/python.exe -m uvicorn app.main:app --reload --port 8001
+- Start project service:
+  C:/Python313/python.exe -m uvicorn app.main:app --reload --port 8002
+- Run DB check:
+  C:/Python313/python.exe scripts/check_db.py
+- Seed via API (example):
+  PowerShell: $env:OFFICER_PASSWORD='TempPass!23'; C:/Python313/python.exe scripts/seed_db.py
+- Update officer hash script:
+  C:/Python313/python.exe scripts/update_officer_hash.py
+- Quick API checks (examples run):
+  python -c "import requests; print(requests.post('http://localhost:8001/api/v1/auth/login', json={'email':'officer@example.com','password':'TempPass!23'}).text)"
+
+Packages and versions (from services' `requirements.txt` and environment observations)
+- Python runtime: C:/Python313 (Python 3.13.x)
+- auth-service `requirements.txt` includes:
+  - fastapi==0.115.6
+  - uvicorn[standard]==0.34.0
+  - motor==3.6.1
+  - pydantic-settings==2.7.1
+  - python-jose[cryptography]==3.3.0
+  - passlib[bcrypt]==1.7.4
+  - bcrypt==3.2.2
+  - email-validator==2.2.0
+- project-service `requirements.txt` includes:
+  - fastapi==0.115.6
+  - uvicorn[standard]==0.34.0
+  - motor==3.6.1
+  - pydantic-settings==2.7.1
+  - python-jose[cryptography]==3.3.0
+  - bcrypt==3.2.2
+  - email-validator==2.2.0
+- Runtime note: locally observed `bcrypt` package presented as version 5.0.0 in the environment (this caused passlib to attempt backend inspection and fail). To avoid further runtime mismatches either:
+  - pin the environment `bcrypt==3.2.2` (matches `requirements.txt`) or
+  - remove/passlib usage and rely on direct `bcrypt` calls consistently.
+- Other packages used in scripts/tests: `requests` (installed for seed script), `pymongo` (scripts use it), `bcrypt` (direct use), `logging` (stdlib).
+
+Endpoints used during testing
+- Auth service (localhost:8001):
+  - POST /api/v1/auth/register
+  - POST /api/v1/auth/login
+- Project service (localhost:8002):
+  - GET /api/v1/projects
+  - POST /api/v1/projects (used by seed script authenticated as Officer)
+
+Notes & next steps
+- Verify local virtual environment packages are consistent with `requirements.txt` in each service. Run:
+  python -m pip install -r services/auth-service/requirements.txt
+  python -m pip install -r services/project-service/requirements.txt
+- Decide whether to keep `passlib` or standardize on direct `bcrypt` usage. If keeping passlib, ensure `bcrypt` version from pip matches the expected backend (pin to 3.2.2).
+- Consider adding a `README_dev.md` with quick start commands and environment variables (`OFFICER_PASSWORD`, MongoDB URI, ports).
+- Optionally commit the scripts added/changed and open a small PR describing the bcrypt/passlib fix and the seed improvements.
+
+If you want, I can:
+- Generate `README_dev.md` with step-by-step dev startup and seeding commands.
+- Pin `bcrypt` in a `requirements-dev.txt` and run installation in the environment.
+- Create a simple post-registration success page in the frontend (I already inspected `frontend/src/pages/RegisterPage.tsx`).
+
+-- End of summary --

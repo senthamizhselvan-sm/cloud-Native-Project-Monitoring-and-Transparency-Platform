@@ -1,0 +1,165 @@
+================================================================================
+          COMPREHENSIVE PROJECT MONITORING & TRANSPARENCY PLATFORM
+                     DEVELOPMENT & FUNCTIONALITY SUMMARY
+================================================================================
+Date: June 7, 2026
+Project Repository: cloud-Native-Project-Monitoring-and-Transparency-Platform
+Workspace Path: D:\project cloud\cloud1
+
+This document summarizes the current architecture, backend services, frontend page
+designs, and dynamic functionalities implemented in the monorepo.
+
+--------------------------------------------------------------------------------
+1. SYSTEM ARCHITECTURE & MONOREPO STRUCTURE
+--------------------------------------------------------------------------------
+The application is structured as a cloud-native microservices application comprising
+three Python (FastAPI) backends and a React (Vite + TypeScript) frontend, running on
+different local ports and communicating over HTTP/REST:
+
+- React Frontend: Port 5173 (React + Vite + TypeScript)
+- Auth Service: Port 8001 (FastAPI + JWT + RBAC)
+- Project Service: Port 8002 (FastAPI + Project CRUD)
+- Feedback Service: Port 8003 (FastAPI + Citizen Grievances/Feedback)
+- Database: MongoDB (Running on standard port 27017)
+
+--------------------------------------------------------------------------------
+2. BACKEND SERVICES & DYNAMIC ROLES
+--------------------------------------------------------------------------------
+Each service runs independently and communicates with a local MongoDB instance.
+
+A. Authentication & RBAC Service (Port 8001)
+   - Handles user authentication, registration, and role-based login.
+   - Validates user roles: Citizen, Engineer, Contractor, Officer, Admin.
+   - Decoupled JWT generation using a shared JWT secret.
+   - Core fix applied: Standardized on direct 'bcrypt' library calls to avoid passlib
+     runtime detection errors with newer Python versions (e.g., Python 3.13).
+   - Key Endpoints:
+     - POST `/api/v1/auth/register` (Registers a new user)
+     - POST `/api/v1/auth/login` (Returns JWT access token)
+     - GET `/api/v1/auth/profile` (Returns current user details, role, and profile info)
+
+B. Project Service (Port 8002)
+   - Performs CRUD operations for all infrastructure projects.
+   - Enforces role-based permissions: Only authenticated users with the 'Officer'
+     role can invoke POST /projects to create projects.
+   - Key Endpoints:
+     - GET `/api/v1/projects` (List projects)
+     - POST `/api/v1/projects` (Create project - Officer only)
+     - GET `/api/v1/projects/{id}` (Get specific project details)
+     - PUT `/api/v1/projects/{id}` (Update status & completion - Engineers/Officers)
+
+C. Feedback Service (Port 8003)
+   - Collects and manages public grievances, suggestions, and feedback.
+   - Automatically extracts the user's 'citizen_id' from JWT sub payload.
+   - Key Endpoints:
+     - POST `/api/v1/feedback` (Submit a grievance - Citizens)
+     - GET `/api/v1/feedback` (List complaints - Citizens see only their own;
+       Officers & Admins see all)
+     - PUT `/api/v1/feedback/{id}` (Update complaint status & assign inspector)
+
+--------------------------------------------------------------------------------
+3. FRONTEND LAYOUTS & USER EXPERIENCES
+--------------------------------------------------------------------------------
+The React frontend is divided into two distinct layouts to resolve overlaps:
+- Public Layout (Layout.tsx): Top-navigation bar for citizens and public portals.
+- Dashboard Layout (AppLayout.tsx): Sidebar-navigation dashboard for logged-in 
+  personnel (Officer, Engineer, Admin, Citizen).
+
+A list of all pages and their specific design/dynamic features:
+
+1. Register Page (RegisterPage.tsx):
+   - Visual: Clean card layout with inputs for Name, Email, Password, and Role selection.
+   - Dynamic: Sends registration payload to Auth service and redirects to a success page.
+
+2. Register Success Page (RegisterSuccessPage.tsx):
+   - Visual: Centered green success badge, dynamic messages.
+   - Dynamic: Redirects users back to the Login Page after registration.
+
+3. Login Page (LoginPage.tsx):
+   - Visual: Responsive login form with email/password input fields.
+   - Dynamic: Resolves auth token, saves email to localStorage.user_email (for filtering
+     projects assigned to engineers), and redirects to the appropriate role-based dashboard.
+
+4. Public Portal (PublicPortal.tsx):
+   - Visual: Dashboard showing summary grid cards (active, planned, completed projects)
+     and tables detailing project progress.
+   - Dynamic: Serves as a transparent overview for regular citizens without logging in.
+
+5. Project List Page (ProjectListPage.tsx):
+   - Visual: Interactive tabular list displaying project name, department, location,
+     budget (formatted in INR), status badges, and completion percentages.
+   - Dynamic: Fetches live project data from project-service; links to details view.
+
+6. Project Details Page (ProjectDetailsPage.tsx):
+   - Visual: Full profile details, project timeline (start/end dates), budget progress
+     meter, visual completion percentage ring, and assigned engineers.
+   - Dynamic: Queries detailed project status and fields dynamically from database by ID.
+
+7. Map Page (MapPage.tsx):
+   - Visual: Interactive GIS Leaflet map showing markers for project locations.
+   - Dynamic: Geocodes location names (e.g. Chennai, Salem, Madurai) into map pins,
+     uses status-colored emojis (✅, 🚧, ⚠️, 📋), includes interactive dropdown filters for
+     Department, Status, and Location, and displays summary statistics.
+
+8. Officer Dashboard (OfficerDashboard.tsx):
+   - Visual: Metrics grid showing total budget, active/completed projects, and form.
+   - Dynamic: Renders form to create new projects and assign engineers. Automatically
+     re-calculates metrics from live API data.
+
+9. Engineer Dashboard (EngineerDashboard.tsx):
+   - Visual: Grid layout showing assigned projects and updating control panel.
+   - Dynamic: Filters projects using the logged-in user's email. Includes status select
+     and completion percentage range-sliders (0-100%) to edit assigned projects.
+
+10. Citizen Dashboard (CitizenDashboard.tsx):
+    - Visual: Table of citizen-submitted feedback, status cards, and links.
+    - Dynamic: Displays all grievances submitted by the logged-in citizen.
+
+11. Feedback Form (FeedbackForm.tsx):
+    - Visual: Dropdowns to select active projects and textarea to write details.
+    - Dynamic: Queries active projects list from project-service, and posts feedback to
+      feedback-service with citizen email/ID.
+
+12. Feedback Management (FeedbackManagement.tsx):
+    - Visual: Grid layout showing all submitted citizen complaints with action forms.
+    - Dynamic: Officers review complaints, assign inspector names, and update status.
+
+13. Admin Dashboard (AdminDashboard.tsx):
+    - Visual: Full portal with system statistics, quick actions, and user role metrics.
+    - Dynamic: Allows system administrators to oversee auth logs, projects, and feedback.
+
+14. Analytics Page (AnalyticsPage.tsx):
+    - Visual: Interactive charts and statistics representing spending and completions.
+    - Dynamic: Summarizes budget spent by department and displays delayed project metrics.
+
+15. Audit Logs Page (AuditLogsPage.tsx):
+    - Visual: Timeline-based list showing administrative audit history.
+    - Dynamic: Records updates, edits, and security events for validation.
+
+16. Dashboard Page (DashboardPage.tsx):
+    - Visual: Universal landing dashboard page.
+    - Dynamic: Dispatches users to their designated role-based dashboard view upon login.
+
+--------------------------------------------------------------------------------
+4. VERIFICATION & REPRODUCTION STEPS
+--------------------------------------------------------------------------------
+To run the services and verify the implementation:
+
+1. Launch MongoDB (ensure port 27017 is listening).
+2. Start the Backend Services (in separate terminals, make sure venv is active):
+   - Auth Service:
+     cd services/auth-service
+     python -m uvicorn app.main:app --reload --port 8001
+   - Project Service:
+     cd services/project-service
+     python -m uvicorn app.main:app --reload --port 8002
+   - Feedback Service:
+     cd services/feedback-service
+     python -m uvicorn app.main:app --reload --port 8003
+3. Run the Frontend (in separate terminal):
+     cd frontend
+     npm run dev (runs at http://localhost:5173)
+4. Seed Sample Data:
+     $env:OFFICER_PASSWORD="TempPass!23"
+     python scripts/seed_db.py
+================================================================================

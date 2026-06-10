@@ -21,6 +21,8 @@ export default function LoginPage() {
       const role = profile.data.role ?? 'Citizen';
       localStorage.setItem('user_role', role);
       localStorage.setItem('user_name', profile.data.full_name ?? '');
+      localStorage.setItem('user_email', profile.data.email ?? '');
+      localStorage.setItem('user_district', profile.data.district ?? '');
 
       if (role === 'Officer') navigate('/dashboard/officer');
       else if (role === 'Engineer') navigate('/dashboard/engineer');
