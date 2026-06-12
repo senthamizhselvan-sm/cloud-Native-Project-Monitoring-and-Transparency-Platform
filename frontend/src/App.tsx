@@ -17,6 +17,10 @@ import FeedbackForm from './pages/FeedbackForm';
 import FeedbackManagement from './pages/FeedbackManagement';
 import MapPage from './pages/MapPage';
 import AuditLogsPage from './pages/AuditLogsPage';
+import AICenter from './pages/AICenter';
+import DistrictIntelligence from './pages/DistrictIntelligence';
+import OperationsCenter from './pages/OperationsCenter';
+import ContractorDashboard from './pages/ContractorDashboard';
 
 export default function App() {
   return (
@@ -41,8 +45,12 @@ export default function App() {
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/admin/audit" element={<AuditLogsPage />} />
       <Route path="/analytics" element={<AnalyticsPage />} />
+      <Route path="/dashboard/ai-center" element={<AICenter />} />
+      <Route path="/dashboard/district-intelligence" element={<DistrictIntelligence />} />
+      <Route path="/dashboard/operations" element={<OperationsCenter />} />
       <Route path="/dashboard/officer" element={<OfficerDashboard />} />
       <Route path="/dashboard/engineer" element={<EngineerDashboard />} />
+      <Route path="/dashboard/contractor" element={<ContractorDashboard />} />
       <Route path="/feedback/manage" element={<FeedbackManagement />} />
 
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
-import Card from '../components/ui/Card';
-import Badge from '../components/ui/Badge';
+import { Card, MetricCard } from '../design-system/components/Card';
 import {
   authApi,
   projectApi,
@@ -106,7 +105,7 @@ export default function AdminDashboard() {
   const getLatencyIndicator = (latency: number | null, status: 'checking' | 'online' | 'offline') => {
     if (status === 'offline') {
       return (
-        <span className="inline-flex items-center gap-1.5 text-[9px] font-black text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+        <span className="inline-flex items-center gap-1.5 text-[9px] font-black text-red-755 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">
           <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" /> OFFLINE
         </span>
       );
@@ -115,27 +114,27 @@ export default function AdminDashboard() {
     if (status === 'checking' || latency === null) {
       return (
         <span className="inline-flex items-center gap-1.5 text-[9px] font-black text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full">
-          <span className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-pulse" /> PINGING...
+          <span className="h-1.5 w-1.5 rounded-full bg-slate-450 animate-pulse" /> PINGING...
         </span>
       );
     }
 
     if (latency < 100) {
       return (
-        <span className="inline-flex items-center gap-1.5 text-[9px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {latency}ms (Fast)
+        <span className="inline-flex items-center gap-1.5 text-[9px] font-black text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {latency}ms
         </span>
       );
     } else if (latency <= 300) {
       return (
-        <span className="inline-flex items-center gap-1.5 text-[9px] font-black text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> {latency}ms (Moderate)
+        <span className="inline-flex items-center gap-1.5 text-[9px] font-black text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> {latency}ms
         </span>
       );
     } else {
       return (
-        <span className="inline-flex items-center gap-1.5 text-[9px] font-black text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
-          <span className="h-1.5 w-1.5 rounded-full bg-red-500" /> {latency}ms (High Latency)
+        <span className="inline-flex items-center gap-1.5 text-[9px] font-black text-red-755 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">
+          <span className="h-1.5 w-1.5 rounded-full bg-red-500" /> {latency}ms
         </span>
       );
     }
@@ -151,8 +150,8 @@ export default function AdminDashboard() {
             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Admin System Panel</h2>
             <p className="text-slate-500 text-sm">Monitor microservices network health, latency bounds, registered growth, and audit log histories.</p>
           </div>
-          <span className="text-xs font-bold text-red-700 bg-red-50 border border-red-200 px-3.5 py-1.5 rounded-full self-start sm:self-auto flex items-center gap-1.5">
-            <svg className="w-3.5 h-3.5 text-red-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+          <span className="text-xs font-bold text-red-700 bg-red-50 border border-red-100 px-3.5 py-1.5 rounded-full self-start sm:self-auto flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5 text-red-650" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.751A11.956 11.956 0 0 1 12 2.714Z" />
             </svg>
             Role: System Administrator
@@ -168,9 +167,9 @@ export default function AdminDashboard() {
               <h3 className="font-extrabold text-slate-900 text-sm">Microservices Cluster Status</h3>
               <button
                 onClick={checkAllServices}
-                className="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1.5 transition"
+                className="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1.5 transition cursor-pointer"
               >
-                <svg className="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 text-blue-600 animate-spin-slow" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                 </svg>
                 Ping Health Checks
@@ -181,7 +180,7 @@ export default function AdminDashboard() {
               {services.map((srv) => (
                 <div
                   key={srv.name}
-                  className="flex items-center justify-between p-3.5 border border-slate-100 rounded-2xl bg-slate-50/50 shadow-sm transition duration-200 hover:border-slate-200"
+                  className="flex items-center justify-between p-3.5 border border-slate-150 rounded-2xl bg-slate-50/50 transition duration-200 hover:border-slate-300 shadow-sm"
                 >
                   <div>
                     <div className="text-xs font-extrabold text-slate-800">{srv.name}</div>
@@ -197,17 +196,17 @@ export default function AdminDashboard() {
           </Card>
 
           {/* Quick Stats Widget (Right) */}
-          <Card className="lg:col-span-4 flex flex-col justify-between p-6 bg-gradient-to-br from-slate-900 to-indigo-950 text-white border-0 rounded-2xl shadow-md min-h-[300px]">
+          <div className="lg:col-span-4 flex flex-col justify-between p-6 bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl shadow-md min-h-[300px]">
             <div>
               <h3 className="font-extrabold text-xs uppercase tracking-wider text-indigo-400">Node Cluster Overview</h3>
-              <div className="mt-4 space-y-4 font-semibold text-xs text-slate-300">
+              <div className="mt-4 space-y-4 font-semibold text-xs text-slate-350">
                 <div className="flex justify-between">
                   <span>Microservices Online</span>
                   <span className="font-extrabold text-slate-100">{services.filter(s => s.status === 'online').length} / {services.length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Environment</span>
-                  <span className="font-extrabold text-indigo-400 uppercase font-mono text-[9px] tracking-wide bg-indigo-500/20 px-1.5 py-0.5 rounded">LOCAL CLOUD</span>
+                  <span className="font-extrabold text-indigo-450 uppercase font-mono text-[9px] tracking-wide bg-indigo-500/20 px-1.5 py-0.5 rounded border border-indigo-500/10">LOCAL CLOUD</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Database Hub</span>
@@ -224,7 +223,7 @@ export default function AdminDashboard() {
               <span>Primary Port Gateway:</span>
               <span className="font-mono text-indigo-400 font-bold">5173 (Vite Server)</span>
             </div>
-          </Card>
+          </div>
         </div>
 
         {/* Charts Row */}

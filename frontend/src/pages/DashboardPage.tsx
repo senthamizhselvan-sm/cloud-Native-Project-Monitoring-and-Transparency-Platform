@@ -232,6 +232,55 @@ export default function DashboardPage() {
             </Link>
           </div>
         );
+      case 'Contractor':
+        return (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-8">
+            <Link to="/dashboard/contractor" className="group">
+              <Card className="p-6 border border-slate-200 bg-white rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md hover:border-blue-500 flex flex-col h-full justify-between">
+                <div className="space-y-3">
+                  <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl w-fit group-hover:bg-blue-600 group-hover:text-white transition duration-200 text-blue-600">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21V3" />
+                    </svg>
+                  </div>
+                  <h3 className="font-extrabold text-slate-900 text-sm">Contractor Work-Center</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed font-semibold">Supervise won project sites, record milestone completions, and upload tender document certs.</p>
+                </div>
+                <span className="text-blue-600 font-extrabold text-[10px] uppercase tracking-wider group-hover:translate-x-1 transition duration-150 inline-block mt-4">Open dashboard &rarr;</span>
+              </Card>
+            </Link>
+
+            <Link to="/projects" className="group">
+              <Card className="p-6 border border-slate-200 bg-white rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md hover:border-emerald-500 flex flex-col h-full justify-between">
+                <div className="space-y-3">
+                  <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl w-fit group-hover:bg-emerald-600 group-hover:text-white transition duration-200 text-emerald-650">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+                    </svg>
+                  </div>
+                  <h3 className="font-extrabold text-slate-900 text-sm">State Projects Registry</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed font-semibold">Browse statewide civil projects directory, inspect detailed templates, timelines, and budgets.</p>
+                </div>
+                <span className="text-emerald-655 font-extrabold text-[10px] uppercase tracking-wider group-hover:translate-x-1 transition duration-150 inline-block mt-4">View projects &rarr;</span>
+              </Card>
+            </Link>
+
+            <Link to="/map" className="group">
+              <Card className="p-6 border border-slate-200 bg-white rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md hover:border-purple-500 flex flex-col h-full justify-between">
+                <div className="space-y-3">
+                  <div className="p-3 bg-purple-50 border border-purple-100 rounded-xl w-fit group-hover:bg-purple-600 group-hover:text-white transition duration-200 text-purple-600">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m20.893 13.393-1.135-1.135a2.252 2.252 0 0 1-.421-.585c-.083-.177-.565V9.75c0-.621-.504-1.125-1.125-1.125h-1.125a1.125 1.125 0 0 1-1.125-1.125V6.375c0-.621-.504-1.125-1.125-1.125H9.75a9 9 0 0 0-9 9c0 1.114.2 2.18.567 3.167" />
+                    </svg>
+                  </div>
+                  <h3 className="font-extrabold text-slate-900 text-sm">GIS Project Locations</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed font-semibold">Inspect geological locations and regional layout coordinates of all active civil works.</p>
+                </div>
+                <span className="text-purple-600 font-extrabold text-[10px] uppercase tracking-wider group-hover:translate-x-1 transition duration-150 inline-block mt-4">Inspect map &rarr;</span>
+              </Card>
+            </Link>
+          </div>
+        );
       case 'Admin':
         return (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mt-8">

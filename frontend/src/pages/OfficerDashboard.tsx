@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AppLayout from '../components/layout/AppLayout';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
+import { MetricCard, ProjectCard } from '../design-system/components/Card';
 import { projectApi, feedbackApi, auditApi, documentApi } from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -331,65 +332,68 @@ export default function OfficerDashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {/* Widget 1: Total Projects */}
-          <Card className="p-5 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col justify-between h-32 hover:shadow transition duration-200">
-            <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Active Projects</span>
+          <MetricCard
+            label="Total Active Projects"
+            value={totalProjects}
+            trend={growthText}
+            icon={
               <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
               </svg>
-            </div>
-            <div className="mt-2">
-              <span className="text-3xl font-black text-slate-900">{totalProjects}</span>
-              <span className="text-[10px] text-emerald-600 font-semibold block mt-1">{growthText}</span>
-            </div>
-          </Card>
+            }
+          />
 
           {/* Widget 2: Budget Utilization */}
-          <Card className="p-5 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col justify-between h-32 hover:shadow transition duration-200">
-            <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Budget Utilization</span>
+          <MetricCard
+            label="Budget Utilization"
+            value={formatCurrency(totalBudgetVal)}
+            borderAccent="border-emerald-600"
+            icon={
               <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-1.957-.659-1.006-.879-1.006-2.303 0-3.182s2.9-.879 4.07 0c.513.385.972.85 1.282 1.397m-7.658 3.262H3m18 0h-3.262" />
               </svg>
-            </div>
-            <div className="mt-2 space-y-1.5">
-              <div className="flex items-baseline justify-between">
-                <span className="text-xl font-black text-slate-900">{formatCurrency(totalBudgetVal)}</span>
-                <span className="text-[10px] text-slate-400 font-bold">{budgetUtilizationRate}% Spent</span>
+            }
+          >
+            <div className="space-y-1.5 mt-1">
+              <div className="flex items-baseline justify-between text-[10px] text-slate-400 font-bold">
+                <span>Utilization Rate</span>
+                <span>{budgetUtilizationRate}% Spent</span>
               </div>
               <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                 <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${Math.min(100, budgetUtilizationRate)}%` }}></div>
               </div>
             </div>
-          </Card>
+          </MetricCard>
 
-          {/* Widget 3: Citizen Complaints */}
-          <Card className="p-5 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col justify-between h-32 hover:shadow transition duration-200">
-            <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Citizen Grievances</span>
+          {/* Widget 3: Citizen Grievances */}
+          <MetricCard
+            label="Citizen Grievances"
+            value={`${openComplaintsCount} Open`}
+            borderAccent="border-amber-500"
+            icon={
               <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
               </svg>
-            </div>
-            <div className="mt-2">
-              <span className="text-3xl font-black text-slate-900">{openComplaintsCount} Open</span>
-              <span className="text-[10px] text-red-500 font-semibold block mt-1">{criticalComplaintsCount} Critical severity</span>
-            </div>
-          </Card>
+            }
+            trend={`${criticalComplaintsCount} Critical severity`}
+            trendDirection="down"
+            details="pending"
+          />
 
           {/* Widget 4: High Risk Projects */}
-          <Card className="p-5 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col justify-between h-32 hover:shadow transition duration-200">
-            <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Risk Index Alerts</span>
+          <MetricCard
+            label="Risk Index Alerts"
+            value={`${highRiskCount} Projects`}
+            borderAccent="border-red-500"
+            icon={
               <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3Z" />
               </svg>
-            </div>
-            <div className="mt-2">
-              <span className="text-3xl font-black text-red-655">{highRiskCount} Projects</span>
-              <span className="text-[10px] text-slate-400 font-semibold block mt-1">Flagged by Risk Engine</span>
-            </div>
-          </Card>
+            }
+            trend="Flagged by Risk Engine"
+            trendDirection="neutral"
+            details="high delay risk"
+          />
         </div>
 
         {/* Charts Row */}
@@ -471,55 +475,17 @@ export default function OfficerDashboard() {
                 {projects.map((p) => {
                   const pComplaints = complaints.filter(c => c.project_id === p.id).length;
                   return (
-                    <Card key={p.id} className="p-5 border border-slate-200 rounded-xl bg-white shadow-sm hover:shadow-md hover:border-slate-300 transition duration-200 flex flex-col justify-between">
-                      <div className="space-y-1">
-                        <div className="flex justify-between items-start gap-2">
-                          <h4 className="font-extrabold text-sm text-slate-900 leading-snug line-clamp-1" title={p.name}>
-                            {p.name}
-                          </h4>
-                          <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full border ${getRiskColor(p.risk_level)}`}>
-                            {p.risk_level || 'Low'}
-                          </span>
-                        </div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{p.department} &bull; {p.location}</p>
-                      </div>
-
-                      <div className="mt-4 space-y-3">
-                        <div className="flex justify-between items-baseline text-xs">
-                          <span className="text-slate-400 font-medium">Budget:</span>
-                          <span className="font-extrabold text-slate-800">{formatCurrency(p.budget)}</span>
-                        </div>
-
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-[10px] font-semibold text-slate-500">
-                            <span>Completion progress</span>
-                            <span>{p.completion}%</span>
-                          </div>
-                          <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                            <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${p.completion}%` }}></div>
-                          </div>
-                        </div>
-
-                        <div className="flex justify-between items-center text-[10px] text-slate-400 border-t border-slate-50 pt-3">
-                          <span className="font-semibold flex items-center gap-1.5">
-                            <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-                            </svg>
-                            {pComplaints} {pComplaints === 1 ? 'complaint' : 'complaints'}
-                          </span>
-                          <span className="font-mono text-[9px]">
-                            Last update: 2 days ago
-                          </span>
-                        </div>
-
-                        <Link
-                          to={`/projects/${p.id}`}
-                          className="block w-full text-center py-2 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition mt-2 border border-blue-100"
-                        >
-                          View Details Dashboard
-                        </Link>
-                      </div>
-                    </Card>
+                    <ProjectCard
+                      key={p.id}
+                      name={p.name}
+                      location={p.location}
+                      department={p.department}
+                      budget={formatCurrency(p.budget)}
+                      completion={p.completion}
+                      riskLevel={p.risk_level}
+                      complaintsCount={pComplaints}
+                      onClickView={() => navigate(`/projects/${p.id}`)}
+                    />
                   );
                 })}
               </div>

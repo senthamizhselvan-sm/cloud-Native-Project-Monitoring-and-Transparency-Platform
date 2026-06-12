@@ -1,5 +1,6 @@
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import CommandPalette from './ui/CommandPalette';
 
 export default function Layout() {
   const [role, setRole] = useState<string | null>(null);
@@ -23,6 +24,7 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
+      <CommandPalette />
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div>
