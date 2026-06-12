@@ -201,7 +201,9 @@ export default function ProjectDocumentsPage() {
                   <Card key={filename} className="p-5 border border-slate-200 rounded-xl shadow-sm bg-white">
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
-                        <span className="text-3xl">📄</span>
+                        <svg className="w-8 h-8 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                        </svg>
                         <div>
                           <h4 className="font-extrabold text-sm text-slate-800 leading-snug">{filename}</h4>
                           <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">

@@ -229,9 +229,9 @@ export default function FeedbackForm() {
                   onChange={(e) => setSeverity(e.target.value)}
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white"
                 >
-                  <option value="Low">🟢 Low Severity</option>
-                  <option value="Medium">🟡 Medium Severity</option>
-                  <option value="High">🔴 High Severity</option>
+                  <option value="Low">Low Severity</option>
+                  <option value="Medium">Medium Severity</option>
+                  <option value="High">High Severity</option>
                 </select>
               </div>
             </div>
@@ -250,8 +250,11 @@ export default function FeedbackForm() {
               {aiLoading && <p className="text-[10px] text-slate-400 mt-1">AI analyzing issue details...</p>}
               {aiCat && (
                 <div className="mt-2 bg-indigo-50 border border-indigo-100 rounded-lg p-2.5 text-[11px] text-indigo-700 flex justify-between items-center">
-                  <span>
-                    🧠 <strong>AI Classification Suggestion:</strong> {aiCat.category} ({aiCat.confidence}% confidence)
+                  <span className="flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21M6.75 6.75h10.5a2.25 2.25 0 0 1 2.25 2.25v10.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V9a2.25 2.25 0 0 1 2.25-2.25Z" />
+                    </svg>
+                    <span><strong>AI Classification Suggestion:</strong> {aiCat.category} ({aiCat.confidence}% confidence)</span>
                   </span>
                   <Badge variant={aiCat.urgency_level === 'High' ? 'danger' : aiCat.urgency_level === 'Medium' ? 'warning' : 'success'}>
                     {aiCat.urgency_level} Urgency

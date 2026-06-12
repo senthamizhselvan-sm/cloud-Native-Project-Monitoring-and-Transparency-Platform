@@ -1,165 +1,250 @@
 ================================================================================
           COMPREHENSIVE PROJECT MONITORING & TRANSPARENCY PLATFORM
-                     DEVELOPMENT & FUNCTIONALITY SUMMARY
+               COMPLETE ARCHITECTURE & DEVELOPMENT SUMMARY
 ================================================================================
-Date: June 7, 2026
+Updated Date: June 10, 2026
 Project Repository: cloud-Native-Project-Monitoring-and-Transparency-Platform
 Workspace Path: D:\project cloud\cloud1
+Target Database: Windows Host MongoDB (mongodb://host.docker.internal:27017)
 
-This document summarizes the current architecture, backend services, frontend page
-designs, and dynamic functionalities implemented in the monorepo.
-
---------------------------------------------------------------------------------
-1. SYSTEM ARCHITECTURE & MONOREPO STRUCTURE
---------------------------------------------------------------------------------
-The application is structured as a cloud-native microservices application comprising
-three Python (FastAPI) backends and a React (Vite + TypeScript) frontend, running on
-different local ports and communicating over HTTP/REST:
-
-- React Frontend: Port 5173 (React + Vite + TypeScript)
-- Auth Service: Port 8001 (FastAPI + JWT + RBAC)
-- Project Service: Port 8002 (FastAPI + Project CRUD)
-- Feedback Service: Port 8003 (FastAPI + Citizen Grievances/Feedback)
-- Database: MongoDB (Running on standard port 27017)
+This document serves as a complete reference for the upgraded cloud-native platform
+consisting of a React (Vite + TypeScript) frontend, 8 Python (FastAPI) microservices,
+Docker containerization, Prometheus/Grafana monitoring, and Tamil Nadu district-wise
+access controls.
 
 --------------------------------------------------------------------------------
-2. BACKEND SERVICES & DYNAMIC ROLES
+1. ARCHITECTURE OVERVIEW & PORT ALLOCATIONS
 --------------------------------------------------------------------------------
-Each service runs independently and communicates with a local MongoDB instance.
+The platform is designed as an event-driven, microservices-based application. 
+All backends share the same JWT signature key and connect directly to the native 
+Windows host MongoDB instance via 'host.docker.internal'.
 
-A. Authentication & RBAC Service (Port 8001)
-   - Handles user authentication, registration, and role-based login.
-   - Validates user roles: Citizen, Engineer, Contractor, Officer, Admin.
-   - Decoupled JWT generation using a shared JWT secret.
-   - Core fix applied: Standardized on direct 'bcrypt' library calls to avoid passlib
-     runtime detection errors with newer Python versions (e.g., Python 3.13).
-   - Key Endpoints:
-     - POST `/api/v1/auth/register` (Registers a new user)
-     - POST `/api/v1/auth/login` (Returns JWT access token)
-     - GET `/api/v1/auth/profile` (Returns current user details, role, and profile info)
+- React Frontend:         Port 5173 (Served via Vite in dev / Nginx in container)
+- Auth Service:           Port 8001 (User registration, login, profile, and JWT generation)
+- Project Service:        Port 8002 (Project CRUD, dynamic Risk Engine, Auto Timeline)
+- Feedback Service:       Port 8003 (Citizen complaints with location, severity, & photo)
+- Document Service:       Port 8004 (Static file server, file upload with incremental versioning)
+- Analytics Service:      Port 8005 (Monthly trends, budget burn-rates, and department success rankings)
+- Notification Service:   Port 8006 (WebSockets push server for real-time dashboard notifications)
+- Audit Service:          Port 8007 (Audit feed database logging administrative actions)
+- AI Prediction Service:  Port 8008 (AI delay predictions, NLP project summaries, text categorizer)
+- Database:               Windows MongoDB (Host port 27017)
+- Prometheus Scraper:     Port 9090 (FastAPI prometheus-instrumentator metrics collector)
+- Grafana Dashboards:     Port 3000 (Scraped service health and latency visualizations)
+
+--------------------------------------------------------------------------------
+2. BACKEND MICROSERVICES ARCHITECTURE & SCHEMAS
+--------------------------------------------------------------------------------
+
+A. Auth Service (Port 8001)
+   - Handles account creations, credentials validation, and role-based profiles.
+   - Core Hashing: Employs direct 'bcrypt' hashing (avoiding passlib compatibility issues).
+   - JWT Claims Upgrades: Embeds user 'name', 'email', and 'district' metadata in the 
+     token claims, allowing downstream services to decrypt tokens locally.
+   - Endpoints:
+     - POST `/api/v1/auth/register` (creates user record with district selection)
+     - POST `/api/v1/auth/login` (generates JWT token with name, email, role, district claims)
+     - GET `/api/v1/auth/profile` (returns active authenticated user profile details)
 
 B. Project Service (Port 8002)
-   - Performs CRUD operations for all infrastructure projects.
-   - Enforces role-based permissions: Only authenticated users with the 'Officer'
-     role can invoke POST /projects to create projects.
-   - Key Endpoints:
-     - GET `/api/v1/projects` (List projects)
-     - POST `/api/v1/projects` (Create project - Officer only)
-     - GET `/api/v1/projects/{id}` (Get specific project details)
-     - PUT `/api/v1/projects/{id}` (Update status & completion - Engineers/Officers)
+   - Performs CRUD operations. Evaluates user permissions using token claims.
+   - District boundary filters: If the token role is 'Citizen' or 'Engineer', all project 
+     listings default to and strictly validate against their registered district.
+   - Project Risk Engine:
+     - Automatically calculates a dynamic risk score (0-100) and assigns a risk badge.
+     - Adds score weight based on project deadline overruns, total complaints, and budget size.
+     - Outputs: Low (<35, Green 🟢), Medium (35-70, Yellow 🟡), and High (>=70, Red 🔴).
+   - Auto Timeline Event Generator:
+     - Instantly injects chronological timeline milestones when:
+       * Project is created (Sanctions milestone).
+       * Construction begins (Status changes to 'In Progress').
+       * Reaches 20% or 50% completion checkpoints.
+       * Official inspection is booked (Status changes to 'Inspection Scheduled').
+       * Project finishes (Status changes to 'Completed').
+       * Project falls behind (Status changes to 'Delayed').
+       * Assigned engineer is updated.
+   - Endpoints:
+     - GET/POST `/api/v1/projects` (creates project, restricts list/creation by role/district)
+     - GET/PUT/DELETE `/api/v1/projects/{id}` (manages project details, checks district bounds)
+     - GET/POST `/api/v1/projects/{id}/timeline` (milestone logs with photo attachments)
 
 C. Feedback Service (Port 8003)
-   - Collects and manages public grievances, suggestions, and feedback.
-   - Automatically extracts the user's 'citizen_id' from JWT sub payload.
-   - Key Endpoints:
-     - POST `/api/v1/feedback` (Submit a grievance - Citizens)
-     - GET `/api/v1/feedback` (List complaints - Citizens see only their own;
-       Officers & Admins see all)
-     - PUT `/api/v1/feedback/{id}` (Update complaint status & assign inspector)
+   - Manages public grievances, suggestions, and complaint workflows.
+   - Upgraded Schema: Includes 'location' text, 'severity' levels (Low/Medium/High), and 
+     'image_url' for visual proof.
+   - Security Boundary: Citizens and Engineers cannot view or submit complaints for 
+     projects outside their registered district.
+   - Activity Logging: Directly posts a notification log to the global audit feed when 
+     a citizen files a new complaint.
+   - Endpoints:
+     - GET/POST `/api/v1/feedback` (submits and lists complaints based on district locks)
+     - PUT `/api/v1/feedback/{id}` (updates complaint status: OPEN, ASSIGNED, RESOLVED)
+
+D. Document Service (Port 8004)
+   - Hosts uploaded construction drone shots, project contracts, and layouts.
+   - Static Files Mount: Configures FastAPI middleware to serve files from `static/uploads`.
+   - File Versioning System:
+     - Checks if a file with the same project ID and filename exists in MongoDB.
+     - If detected, keeps the original file and increments the suffix on disk (e.g. `_v2`, `_v3`) 
+       to preserve historical uploads in a version timeline.
+   - District Security: Restricts uploads and listings to the user's district for citizens/engineers.
+   - Endpoints:
+     - POST `/api/v1/documents/upload` (accepts file uploads, handles versions, logs activity)
+     - GET `/api/v1/documents/project/{project_id}` (retrieves version history for details page)
+
+E. Analytics Service (Port 8005)
+   - Aggregates multi-service database records for high-fidelity frontend graphs.
+   - Endpoints:
+     - GET `/api/v1/analytics/trends` (computes monthly spending trends in INR)
+     - GET `/api/v1/analytics/burn-rate` (computes cumulative spending burn-rate)
+     - GET `/api/v1/analytics/forecast` (calculates estimated remaining days for completion)
+     - GET `/api/v1/analytics/complaints` (distributes complaints by location and severity)
+     - GET `/api/v1/analytics/rankings` (ranks departments by success/timely completion rates)
+
+F. Notification Service (Port 8006)
+   - Handles real-time communication between active users and backend updates.
+   - Connection Manager: Manages open WebSocket connections under `/ws/{user_email}`.
+   - Broadcast System: When services publish updates to `/api/v1/notifications`, the service 
+     instantly routes live JSON payloads to active user sockets to display visual toast popups.
+   - Endpoints:
+     - GET/POST `/api/v1/notifications` (manages database notifications logs)
+     - WS `/ws/{user_email}` (live WebSocket connection endpoint)
+
+G. Audit Service (Port 8007)
+   - Serves as the central logging service for administrative activities.
+   - Endpoints:
+     - GET/POST `/api/v1/audit/activities` (logs platform-wide actions like user log-ins,
+       complaint submissions, file uploads, and project status modifications)
+
+H. AI Prediction Service (Port 8008)
+   - Machine Learning prediction helper using in-memory model simulators.
+   - Endpoints:
+     - POST `/api/v1/prediction/delay` (regression estimates for project delays)
+     - POST `/api/v1/prediction/categorize-complaint` (rules-based NLP complaints classifier)
+     - POST `/api/v1/prediction/summarize-project` (generates natural language summaries of status)
 
 --------------------------------------------------------------------------------
-3. FRONTEND LAYOUTS & USER EXPERIENCES
+3. FRONTEND PORTAL: PAGES, DESIGN SYSTEMS & DYNAMICS
 --------------------------------------------------------------------------------
-The React frontend is divided into two distinct layouts to resolve overlaps:
-- Public Layout (Layout.tsx): Top-navigation bar for citizens and public portals.
-- Dashboard Layout (AppLayout.tsx): Sidebar-navigation dashboard for logged-in 
-  personnel (Officer, Engineer, Admin, Citizen).
+The user interface features a premium dark-mode gradient theme, rounded card containers,
+sleek typography (Outfit/Inter), subtle micro-animations on hover, and strict role-based routing.
 
-A list of all pages and their specific design/dynamic features:
+1. Public Portal (PublicPortal.tsx)
+   - Visual: Premium glassmorphic metric grid cards and progress lists.
+   - Features: Tabbed view displaying:
+     * Featured Projects (High-priority works).
+     * Recent Completions (Transparent progress metrics).
+     * Projects Near Me (Allows visitors to query any of the 38 TN districts).
+     * Success Stories.
+   - Interactive GIS Map: Incorporates Leaflet popups detailing department, budget, 
+     completion percentage, and direct photo thumbnails.
 
-1. Register Page (RegisterPage.tsx):
-   - Visual: Clean card layout with inputs for Name, Email, Password, and Role selection.
-   - Dynamic: Sends registration payload to Auth service and redirects to a success page.
+2. Interactive Map (MapPage.tsx)
+   - Visual: Full-screen GIS Leaflet map with status-colored custom pins.
+   - Features: Filter dropdowns for location (all 38 Tamil Nadu districts), status, and 
+     department. Selecting a district pans the map to its exact geolocated coordinates. 
+     Popup cards display completion gauges, budget in INR, and dynamic risk badges.
 
-2. Register Success Page (RegisterSuccessPage.tsx):
-   - Visual: Centered green success badge, dynamic messages.
-   - Dynamic: Redirects users back to the Login Page after registration.
+3. Register Page (RegisterPage.tsx)
+   - Visual: Centered signup card with district selection dropdown.
+   - Features: Form capturing Name, Email, Password, Role (Citizen/Engineer/Contractor/
+     Officer/Admin), and District. Validates passwords (min 8 chars) and redirects to success.
 
-3. Login Page (LoginPage.tsx):
-   - Visual: Responsive login form with email/password input fields.
-   - Dynamic: Resolves auth token, saves email to localStorage.user_email (for filtering
-     projects assigned to engineers), and redirects to the appropriate role-based dashboard.
+4. Login Page (LoginPage.tsx)
+   - Visual: Minimalist layout with inputs.
+   - Features: Submits login credentials, parses the JWT token, stores the user's role, 
+     email, full name, and district in localStorage, and redirects to their dashboard.
 
-4. Public Portal (PublicPortal.tsx):
-   - Visual: Dashboard showing summary grid cards (active, planned, completed projects)
-     and tables detailing project progress.
-   - Dynamic: Serves as a transparent overview for regular citizens without logging in.
+5. Register Success Page (RegisterSuccessPage.tsx)
+   - Visual: Centered success graphic with bounce animations.
+   - Features: Prompts user that account creation succeeded and routes them to Login.
 
-5. Project List Page (ProjectListPage.tsx):
-   - Visual: Interactive tabular list displaying project name, department, location,
-     budget (formatted in INR), status badges, and completion percentages.
-   - Dynamic: Fetches live project data from project-service; links to details view.
+6. Dashboard Dispatcher (DashboardPage.tsx)
+   - Visual: Clean redirect loader page.
+   - Features: Decodes the user's localStorage role and automatically routes them to 
+     the correct dashboard (Officer, Engineer, Admin, or Citizen).
 
-6. Project Details Page (ProjectDetailsPage.tsx):
-   - Visual: Full profile details, project timeline (start/end dates), budget progress
-     meter, visual completion percentage ring, and assigned engineers.
-   - Dynamic: Queries detailed project status and fields dynamically from database by ID.
+7. Officer Dashboard (OfficerDashboard.tsx)
+   - Visual: Responsive KPI tiles and project input wizard forms.
+   - Features: Allows officers to register new projects and assign local engineers. 
+     Displays analytical summary counters and live global activity feed logs.
 
-7. Map Page (MapPage.tsx):
-   - Visual: Interactive GIS Leaflet map showing markers for project locations.
-   - Dynamic: Geocodes location names (e.g. Chennai, Salem, Madurai) into map pins,
-     uses status-colored emojis (✅, 🚧, ⚠️, 📋), includes interactive dropdown filters for
-     Department, Status, and Location, and displays summary statistics.
+8. Engineer Dashboard (EngineerDashboard.tsx)
+   - Visual: Grid lists of assigned engineering tasks.
+   - Features: Auto-filters projects where the assigned engineer email matches the 
+     logged-in engineer. Features progress range-sliders and status selectors.
 
-8. Officer Dashboard (OfficerDashboard.tsx):
-   - Visual: Metrics grid showing total budget, active/completed projects, and form.
-   - Dynamic: Renders form to create new projects and assign engineers. Automatically
-     re-calculates metrics from live API data.
+9. Citizen Dashboard (CitizenDashboard.tsx)
+   - Visual: Grievance submission lists and status timelines.
+   - Features: Citizens can track progress of their submitted complaints.
 
-9. Engineer Dashboard (EngineerDashboard.tsx):
-   - Visual: Grid layout showing assigned projects and updating control panel.
-   - Dynamic: Filters projects using the logged-in user's email. Includes status select
-     and completion percentage range-sliders (0-100%) to edit assigned projects.
+10. Project List Page (ProjectListPage.tsx)
+    - Visual: Glassmorphic rows displaying completion bars, budget, and department tags.
+    - Features: Lists projects within the logged-in user's district. Links to details.
 
-10. Citizen Dashboard (CitizenDashboard.tsx):
-    - Visual: Table of citizen-submitted feedback, status cards, and links.
-    - Dynamic: Displays all grievances submitted by the logged-in citizen.
+11. Project Details Page (ProjectDetailsPage.tsx)
+    - Visual: Multi-tab layout featuring Overview, Documents, Photo Gallery, and Activity.
+    - Features:
+      * Overview: Displays completion rings, budget progress, and AI predictions.
+      * AI Summary Panel: Displays NLP delay forecasting and natural language reviews.
+      * Photo Gallery Tab: Groups uploaded drone, inspection, and site photos.
+      * Timeline: Chronological milestone logs showing attached photographs.
+      * Activity Logs: Logs relating to updates, edits, and complaints.
 
-11. Feedback Form (FeedbackForm.tsx):
-    - Visual: Dropdowns to select active projects and textarea to write details.
-    - Dynamic: Queries active projects list from project-service, and posts feedback to
-      feedback-service with citizen email/ID.
+12. Project Documents Page (ProjectDocumentsPage.tsx)
+    - Visual: File list table with download buttons and upload forms.
+    - Features: Lists project files and version logs. Users can upload revised files, 
+      automatically tracking them as new versions (e.g. version 2, version 3) in a log list.
 
-12. Feedback Management (FeedbackManagement.tsx):
-    - Visual: Grid layout showing all submitted citizen complaints with action forms.
-    - Dynamic: Officers review complaints, assign inspector names, and update status.
+13. Feedback Form (FeedbackForm.tsx)
+    - Visual: Selection inputs and description boxes.
+    - Features: Users select an active project, input location details, rank grievance 
+      severity (Low/Medium/High), and attach a photograph.
 
-13. Admin Dashboard (AdminDashboard.tsx):
-    - Visual: Full portal with system statistics, quick actions, and user role metrics.
-    - Dynamic: Allows system administrators to oversee auth logs, projects, and feedback.
+14. Feedback Management (FeedbackManagement.tsx)
+    - Visual: Complaint review board with severity badges.
+    - Features: Officers review complaints, assign inspection tasks, and close issues.
 
-14. Analytics Page (AnalyticsPage.tsx):
-    - Visual: Interactive charts and statistics representing spending and completions.
-    - Dynamic: Summarizes budget spent by department and displays delayed project metrics.
+15. Analytics Dashboard (AnalyticsPage.tsx)
+    - Visual: High-fidelity dashboards rendering interactive Recharts graphs.
+    - Features:
+      * Monthly Spending (Bar chart).
+      * Budget Burn Rate (Line chart).
+      * Forecast Completion (Bar chart).
+      * Complaint Heatmaps (Pie/Bar chart).
+      * Department Success Rankings (Bar chart).
 
-15. Audit Logs Page (AuditLogsPage.tsx):
-    - Visual: Timeline-based list showing administrative audit history.
-    - Dynamic: Records updates, edits, and security events for validation.
-
-16. Dashboard Page (DashboardPage.tsx):
-    - Visual: Universal landing dashboard page.
-    - Dynamic: Dispatches users to their designated role-based dashboard view upon login.
+16. Chronological Audit Logs (AuditLogsPage.tsx)
+    - Visual: Vertical timeline feed with avatar icons and timestamps.
+    - Features: Lists administrative updates and transactions chronologically.
 
 --------------------------------------------------------------------------------
-4. VERIFICATION & REPRODUCTION STEPS
+4. INFRASTRUCTURE & MONITORING DEFINITIONS
 --------------------------------------------------------------------------------
-To run the services and verify the implementation:
 
-1. Launch MongoDB (ensure port 27017 is listening).
-2. Start the Backend Services (in separate terminals, make sure venv is active):
-   - Auth Service:
-     cd services/auth-service
-     python -m uvicorn app.main:app --reload --port 8001
-   - Project Service:
-     cd services/project-service
-     python -m uvicorn app.main:app --reload --port 8002
-   - Feedback Service:
-     cd services/feedback-service
-     python -m uvicorn app.main:app --reload --port 8003
-3. Run the Frontend (in separate terminal):
-     cd frontend
-     npm run dev (runs at http://localhost:5173)
-4. Seed Sample Data:
-     $env:OFFICER_PASSWORD="TempPass!23"
-     python scripts/seed_db.py
+A. Docker Compose (docker-compose.yml)
+   - Builds 9 local containers (8 backend services + 1 frontend).
+   - Resolves host communication via `host.docker.internal` pointing directly to your 
+     Windows host's native MongoDB service.
+   - Configures `extra_hosts` to ensure the host IP maps reliably inside all container environments.
+   - Mounts static folders to store document files persistently on disk.
+
+B. Prometheus Scraper Configuration (docker/prometheus/prometheus.yml)
+   - Configures standard jobs to scrape HTTP performance metrics from FastAPI's 
+     `prometheus-fastapi-instrumentator` on ports 8001–8003.
+
+C. Grafana Dashboard Configuration
+   - Runs on port 3000 to visualize metrics compiled from the Prometheus collector.
+
+--------------------------------------------------------------------------------
+5. SEEDING & DATABASE MANAGEMENT
+--------------------------------------------------------------------------------
+The database seeder script `scripts/seed_large_db.py` completely handles the initial state:
+1. **Purges all old data:** Deletes `users`, `projects`, `timeline`, `feedback`, `activities`, 
+   `documents`, `notifications`, and `audit_logs` collections.
+2. **Generates projects:** Injects 760 projects (20 for each of the 38 TN districts).
+3. **Creates district users:** Programmatically registers a Citizen and an Engineer for 
+   all 38 districts (e.g. `citizen.salem@example.com` and `engineer.salem@gov.in`), along with 
+   Chief Officer (`officer@example.com`) and System Admin (`admin@example.com`), hashing their 
+   passwords with `bcrypt` (password: `TempPass!23`).
 ================================================================================

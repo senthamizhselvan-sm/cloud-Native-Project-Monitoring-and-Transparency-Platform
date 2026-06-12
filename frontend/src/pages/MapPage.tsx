@@ -107,26 +107,34 @@ const getCoordinates = (locationName: string): [number, number] => {
 };
 
 const getEmojiMarker = (status: string, completion: number, riskLevel?: string) => {
-  let emoji = '📍';
+  let colorClass = 'text-blue-600';
   const normStatus = status.toLowerCase();
   
   if (riskLevel === 'High') {
-    emoji = '🚨';
+    colorClass = 'text-rose-600';
   } else if (normStatus.includes('complete')) {
-    emoji = '✅';
+    colorClass = 'text-emerald-600';
   } else if (completion > 80) {
-    emoji = '🏗️';
+    colorClass = 'text-cyan-600';
   } else if (normStatus.includes('delay') || normStatus.includes('critical') || riskLevel === 'Medium') {
-    emoji = '⚠️';
+    colorClass = 'text-amber-500';
   } else if (normStatus.includes('plan')) {
-    emoji = '📋';
+    colorClass = 'text-indigo-500';
   } else {
-    emoji = '🚧';
+    colorClass = 'text-slate-500';
   }
 
+  const pinSvg = `
+    <div class="${colorClass}" style="filter: drop-shadow(0 3px 5px rgba(0,0,0,0.35)); cursor: pointer;">
+      <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+      </svg>
+    </div>
+  `;
+
   return L.divIcon({
-    html: `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); cursor: pointer;">${emoji}</div>`,
-    className: 'custom-marker-emoji',
+    html: pinSvg,
+    className: 'custom-marker-svg',
     iconSize: [32, 32],
     iconAnchor: [16, 32],
     popupAnchor: [0, -32]
@@ -344,7 +352,14 @@ export default function MapPage() {
                             project.risk_level === 'Medium' ? 'text-yellow-600' :
                             'text-green-600'
                           }`}>
-                            {project.risk_level === 'High' ? '🔴 High' : project.risk_level === 'Medium' ? '🟡 Medium' : '🟢 Low'}
+                            <span className="inline-flex items-center gap-1">
+                              <span className={`w-2 h-2 rounded-full inline-block ${
+                                project.risk_level === 'High' ? 'bg-red-500' :
+                                project.risk_level === 'Medium' ? 'bg-amber-500' :
+                                'bg-emerald-500'
+                              }`} />
+                              <span>{project.risk_level || 'Low'}</span>
+                            </span>
                           </span>
                         </div>
                       </div>

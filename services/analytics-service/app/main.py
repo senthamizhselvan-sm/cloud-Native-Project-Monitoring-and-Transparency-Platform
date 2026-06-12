@@ -56,9 +56,14 @@ db = db_client[settings.mongo_db_name]
 projects_collection = db['projects']
 feedback_collection = db['feedback']
 
-async def get_projects_df() -> pd.DataFrame:
-    cursor = projects_collection.find()
-    projects = await cursor.to_list(length=1000)
+async def get_projects_df(department: str | None = None, location: str | None = None) -> pd.DataFrame:
+    query = {}
+    if department:
+        query['department'] = department
+    if location:
+        query['location'] = location
+    cursor = projects_collection.find(query)
+    projects = await cursor.to_list(length=10000)
     if not projects:
         return pd.DataFrame(columns=['id', 'name', 'department', 'budget', 'location', 'status', 'completion', 'start_date', 'end_date'])
     
@@ -68,8 +73,8 @@ async def get_projects_df() -> pd.DataFrame:
     return df
 
 @app.get('/api/v1/analytics/budget')
-async def get_budget_analytics(payload: dict = Depends(decode_token)):
-    df = await get_projects_df()
+async def get_budget_analytics(department: str | None = None, location: str | None = None, payload: dict = Depends(decode_token)):
+    df = await get_projects_df(department, location)
     if df.empty:
         return {
             'total_budget': 0.0,
@@ -95,8 +100,8 @@ async def get_budget_analytics(payload: dict = Depends(decode_token)):
     }
 
 @app.get('/api/v1/analytics/departments')
-async def get_department_analytics(payload: dict = Depends(decode_token)):
-    df = await get_projects_df()
+async def get_department_analytics(department: str | None = None, location: str | None = None, payload: dict = Depends(decode_token)):
+    df = await get_projects_df(department, location)
     if df.empty:
         return []
 
@@ -106,8 +111,8 @@ async def get_department_analytics(payload: dict = Depends(decode_token)):
     return result
 
 @app.get('/api/v1/analytics/districts')
-async def get_district_analytics(payload: dict = Depends(decode_token)):
-    df = await get_projects_df()
+async def get_district_analytics(department: str | None = None, location: str | None = None, payload: dict = Depends(decode_token)):
+    df = await get_projects_df(department, location)
     if df.empty:
         return []
 
@@ -118,8 +123,8 @@ async def get_district_analytics(payload: dict = Depends(decode_token)):
 # --- NEW ANALYTICS ENDPOINTS ---
 
 @app.get('/api/v1/analytics/trends')
-async def get_monthly_spending_trends(payload: dict = Depends(decode_token)):
-    df = await get_projects_df()
+async def get_monthly_spending_trends(department: str | None = None, location: str | None = None, payload: dict = Depends(decode_token)):
+    df = await get_projects_df(department, location)
     if df.empty or 'start_date' not in df.columns:
         return [
             {"month": "Jan 2026", "spending": 1500000},
@@ -154,8 +159,8 @@ async def get_monthly_spending_trends(payload: dict = Depends(decode_token)):
     return trends_group.to_dict(orient='records')
 
 @app.get('/api/v1/analytics/burn-rate')
-async def get_budget_burn_rate(payload: dict = Depends(decode_token)):
-    df = await get_projects_df()
+async def get_budget_burn_rate(department: str | None = None, location: str | None = None, payload: dict = Depends(decode_token)):
+    df = await get_projects_df(department, location)
     if df.empty or 'start_date' not in df.columns:
         return [
             {"month": "Jan", "allocated": 10000000, "spent": 2000000},
@@ -190,9 +195,9 @@ async def get_budget_burn_rate(payload: dict = Depends(decode_token)):
     return result
 
 @app.get('/api/v1/analytics/forecast')
-async def get_completion_forecast(payload: dict = Depends(decode_token)):
+async def get_completion_forecast(department: str | None = None, location: str | None = None, payload: dict = Depends(decode_token)):
     # Simply project future months' average completion rates based on current trends
-    df = await get_projects_df()
+    df = await get_projects_df(department, location)
     if df.empty:
         return []
     
@@ -209,9 +214,18 @@ async def get_completion_forecast(payload: dict = Depends(decode_token)):
     return forecast
 
 @app.get('/api/v1/analytics/complaints')
-async def get_complaints_distribution(payload: dict = Depends(decode_token)):
-    cursor = feedback_collection.find()
-    feedbacks = await cursor.to_list(length=1000)
+async def get_complaints_distribution(department: str | None = None, location: str | None = None, payload: dict = Depends(decode_token)):
+    query = {}
+    if location:
+        query['location'] = location
+    if department:
+        # Find project IDs for this department
+        proj_cursor = projects_collection.find({'department': department}, {'_id': 1})
+        proj_ids = [str(p['_id']) for p in await proj_cursor.to_list(length=10000)]
+        query['project_id'] = {'$in': proj_ids}
+        
+    cursor = feedback_collection.find(query)
+    feedbacks = await cursor.to_list(length=10000)
     if not feedbacks:
         return []
     
@@ -224,8 +238,8 @@ async def get_complaints_distribution(payload: dict = Depends(decode_token)):
     return comp_group.to_dict(orient='records')
 
 @app.get('/api/v1/analytics/rankings')
-async def get_department_rankings(payload: dict = Depends(decode_token)):
-    df = await get_projects_df()
+async def get_department_rankings(department: str | None = None, location: str | None = None, payload: dict = Depends(decode_token)):
+    df = await get_projects_df(department, location)
     if df.empty:
         return []
         

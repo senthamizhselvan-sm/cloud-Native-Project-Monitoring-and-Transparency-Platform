@@ -103,17 +103,31 @@ const getCoordinates = (locationName: string): [number, number] => {
 };
 
 const getEmojiMarker = (status: string, completion: number) => {
-  let emoji = '📍';
+  let colorClass = 'text-blue-600';
   const normStatus = status.toLowerCase();
-  if (normStatus.includes('complete')) emoji = '✅';
-  else if (completion > 80) emoji = '🏗️';
-  else if (normStatus.includes('delay')) emoji = '⚠️';
-  else if (normStatus.includes('plan')) emoji = '📋';
-  else emoji = '🚧';
+  if (normStatus.includes('complete')) {
+    colorClass = 'text-emerald-600';
+  } else if (completion > 80) {
+    colorClass = 'text-cyan-600';
+  } else if (normStatus.includes('delay')) {
+    colorClass = 'text-rose-500';
+  } else if (normStatus.includes('plan')) {
+    colorClass = 'text-indigo-500';
+  } else {
+    colorClass = 'text-amber-500';
+  }
+
+  const pinSvg = `
+    <div class="${colorClass}" style="filter: drop-shadow(0 3px 4px rgba(0,0,0,0.35)); cursor: pointer;">
+      <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+      </svg>
+    </div>
+  `;
 
   return L.divIcon({
-    html: `<div style="font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35)); cursor: pointer;">${emoji}</div>`,
-    className: 'custom-portal-emoji',
+    html: pinSvg,
+    className: 'custom-portal-svg',
     iconSize: [28, 28],
     iconAnchor: [14, 28],
     popupAnchor: [0, -28]
@@ -239,8 +253,16 @@ export default function PublicPortal() {
         </Card>
         <Card className="flex flex-col justify-between py-5 px-6 border-t-4 border-yellow-500 bg-white shadow-sm rounded-xl">
           <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Work Phase Split</span>
-          <span className="text-sm font-semibold text-slate-700 mt-2 leading-relaxed">
-            🏗️ {ongoingCount} Ongoing &bull; ✅ {completedCount} Done
+          <span className="flex items-center gap-2 mt-2 text-xs font-semibold">
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
+              <span>{ongoingCount} Ongoing</span>
+            </span>
+            <span className="text-slate-300">&bull;</span>
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+              <span>{completedCount} Done</span>
+            </span>
           </span>
         </Card>
       </div>
@@ -523,13 +545,14 @@ export default function PublicPortal() {
                     {project.risk_level && (
                       <div className="flex justify-between items-center text-[10px] text-slate-500 pt-1">
                         <span>Risk Level:</span>
-                        <span className={`font-semibold ${
-                          project.risk_level === 'High' ? 'text-red-600' :
-                          project.risk_level === 'Medium' ? 'text-yellow-600' :
-                          'text-green-600'
-                        }`}>
-                          {project.risk_level === 'High' ? '🔴 High' : project.risk_level === 'Medium' ? '🟡 Medium' : '🟢 Low'}
-                        </span>
+                            <span className="inline-flex items-center gap-1">
+                              <span className={`w-2 h-2 rounded-full inline-block ${
+                                project.risk_level === 'High' ? 'bg-red-500' :
+                                project.risk_level === 'Medium' ? 'bg-amber-500' :
+                                'bg-emerald-500'
+                              }`} />
+                              <span>{project.risk_level}</span>
+                            </span>
                       </div>
                     )}
 
